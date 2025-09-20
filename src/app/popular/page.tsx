@@ -2,94 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import DebateCard from "@/components/DebateCard";
+import DebateCard from "@/components/debate/DebateCard";
+import { getAllDebates, transformDebateForDisplay } from "@/services/debate";
 
 // Zaman aralığı filtresi için tip tanımı
 type TimeFilter = "day" | "week" | "month" | "year" | "all";
-
-// Örnek popüler münazara verileri
-const popularDebates = [
-  { 
-    id: 1, 
-    title: "Yapay zeka insanlığı tehdit eder mi?", 
-    description: "Yapay zekanın gelişimi ve potansiyel tehlikeleri hakkında fikirlerinizi paylaşın.", 
-    participantCount: 142,
-    tags: ['Teknoloji', 'Etik', 'Gelecek'],
-    isPopular: true,
-    activityScore: 95, // Aktivite puanı (görüntülenme, yorum, vs)
-    createdAt: "2025-06-08"
-  },
-  { 
-    id: 5, 
-    title: "Uzay araştırmalarına ayrılan bütçe arttırılmalı mı?", 
-    description: "İnsanlığın geleceği için uzay araştırmalarının önemi ve maliyeti.", 
-    participantCount: 131,
-    tags: ['Teknoloji', 'Bilim', 'Ekonomi'],
-    isPopular: true,
-    activityScore: 89,
-    createdAt: "2025-06-01"
-  },
-  { 
-    id: 6, 
-    title: "Evrensel temel gelir uygulanabilir mi?", 
-    description: "Temel gelir konseptinin ekonomik ve sosyal etkileri.", 
-    participantCount: 147,
-    tags: ['Ekonomi', 'Toplum', 'Politika'],
-    isPopular: true,
-    activityScore: 82,
-    createdAt: "2025-06-11"
-  },
-  { 
-    id: 3, 
-    title: "İklim değişikliği ile mücadelede bireysel sorumluluk", 
-    description: "Küresel ısınmayı durdurmak için bireylerin yapabilecekleri neler?", 
-    participantCount: 135,
-    tags: ['Çevre', 'Toplum'],
-    isPopular: true,
-    activityScore: 78,
-    createdAt: "2025-06-12"
-  },
-  { 
-    id: 7, 
-    title: "Vegan beslenme sürdürülebilir bir seçenek mi?", 
-    description: "Vegan beslenmenin sağlık, çevre ve etik açıdan değerlendirilmesi.", 
-    participantCount: 122,
-    tags: ['Sağlık', 'Çevre', 'Etik'],
-    isPopular: true,
-    activityScore: 75,
-    createdAt: "2025-06-09"
-  },
-  { 
-    id: 9, 
-    title: "Dijital oyunlar eğitimde kullanılmalı mı?", 
-    description: "Eğitimde oyunlaştırma ve dijital oyunların potansiyel faydaları.", 
-    participantCount: 98,
-    tags: ['Eğitim', 'Teknoloji', 'Psikoloji'],
-    isPopular: true,
-    activityScore: 72,
-    createdAt: "2025-06-10"
-  },
-  { 
-    id: 10, 
-    title: "Moda endüstrisi sürdürülebilir olabilir mi?", 
-    description: "Hızlı moda ve sürdürülebilirlik arasındaki çatışma.", 
-    participantCount: 87,
-    tags: ['Çevre', 'Ekonomi', 'Toplum'],
-    isPopular: true,
-    activityScore: 68,
-    createdAt: "2025-06-07"
-  },
-  { 
-    id: 11, 
-    title: "Sanat yapay zeka tarafından üretilebilir mi?", 
-    description: "Yapay zeka ve yaratıcılık ilişkisi üzerine tartışma.", 
-    participantCount: 112,
-    tags: ['Sanat', 'Teknoloji', 'Felsefe'],
-    isPopular: true,
-    activityScore: 65,
-    createdAt: "2025-06-06"
-  },
-];
 
 // Günlük trendler için haber/bilgi kartları
 const trendingTopics = [
@@ -115,20 +32,33 @@ const trendingTopics = [
 
 export default function Popular() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("week");
-  const [filteredDebates, setFilteredDebates] = useState(popularDebates);
+  const [filteredDebates, setFilteredDebates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Zaman filtresine göre popüler münazaraları filtreleme
+  // Fetch popular debates from API
   useEffect(() => {
-    // Gerçek bir API'dan veri alınacak olsaydı burada zaman filtresine göre filtreleme yapılırdı
-    // Şimdilik tüm verileri gösteriyoruz ve kısa bir yükleme animasyonu ekliyoruz
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      setFilteredDebates(popularDebates);
-      setIsLoading(false);
-    }, 500);
-  }, [timeFilter]);
+    const fetchPopularDebates = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await getAllDebates({ limit: 20 }); // Get debates and filter popular ones
+        const transformedDebates = response.data.map(transformDebateForDisplay);
+        // Filter for popular debates (those with high participation)
+        const popularDebates = transformedDebates
+          .filter(debate => debate.participantCount > 10) // Simple popularity threshold
+          .sort((a, b) => b.participantCount - a.participantCount); // Sort by participation
+        setFilteredDebates(popularDebates);
+      } catch (err) {
+        console.error('Error fetching popular debates:', err);
+        setError('Popüler münazaralar yüklenirken bir hata oluştu.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPopularDebates();
+  }, [timeFilter]); // Re-fetch when time filter changes
 
   // Animasyon varyantları
   const containerVariants = {
@@ -220,6 +150,27 @@ export default function Popular() {
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
+      ) : error ? (
+        <div className="flex flex-col justify-center items-center h-64">
+          <div className="text-red-600 text-center mb-4">
+            <p className="text-lg font-semibold">{error}</p>
+            <p className="text-sm">Lütfen daha sonra tekrar deneyin.</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      ) : filteredDebates.length === 0 ? (
+        <div className="text-center py-16">
+          <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">Henüz popüler münazara yok</h3>
+          <p className="text-gray-500">İlk münazarayı siz başlatın!</p>
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -243,7 +194,7 @@ export default function Popular() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <button className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+            <button className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition-colors">
               <span>Daha Fazla Göster</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>

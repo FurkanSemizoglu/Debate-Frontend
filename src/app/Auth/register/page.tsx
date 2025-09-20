@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registerUser, type RegisterData } from "@/services/auth";
+import { registerUser, getUserProfile } from "@/services/auth";
+import { RegisterData } from "@/types/auth";
 import { 
   validateEmail, 
   validatePassword, 
@@ -13,7 +14,7 @@ import {
   validateConfirmPassword,
   getPasswordStrength 
 } from "@/lib/validation";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Register() {
   const router = useRouter();
@@ -92,9 +93,32 @@ export default function Register() {
       const response = await registerUser(formData);
       
       if (response.success) {
-        // Use AuthContext login if user data is available
-        if (response.user && response.token) {
-          authLogin(response.user, response.token);
+        // Get user profile data after successful registration
+        if (response.access_token) {
+          try {
+            const profileResponse = await getUserProfile();
+            if (profileResponse.success && profileResponse.user) {
+              authLogin(profileResponse.user, response.access_token);
+            } else {
+              // If profile fetch fails, still proceed but create user from form data
+              console.error("Failed to fetch user profile:", profileResponse.message);
+              authLogin({
+                id: "temp-id",
+                name: formData.name,
+                surname: formData.surname,
+                email: formData.email
+              }, response.access_token);
+            }
+          } catch (profileError) {
+            console.error("Error fetching profile:", profileError);
+            // Fallback user object from form data
+            authLogin({
+              id: "temp-id",
+              name: formData.name,
+              surname: formData.surname,
+              email: formData.email
+            }, response.access_token);
+          }
         }
         
         // Redirect to dashboard or home page

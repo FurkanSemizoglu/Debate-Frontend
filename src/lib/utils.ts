@@ -1,4 +1,5 @@
 // src/lib/utils.ts
+import { VALIDATION } from "./constants";
 
 export function classNames(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -12,8 +13,7 @@ export function formatError(error: any): string {
 }
 
 export function validateEmailFormat(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return VALIDATION.EMAIL_REGEX.test(email);
 }
 
 export function debounce<T extends (...args: any[]) => any>(

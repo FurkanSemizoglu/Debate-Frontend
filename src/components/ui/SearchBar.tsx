@@ -23,7 +23,7 @@ export default function SearchBar() {
         whileFocus={{ boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.3)' }}
       />
       <motion.button
-        className="absolute right-2.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-full text-sm"
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-full text-sm cursor-pointer transition-colors hover:bg-blue-700"
         whileHover={{ backgroundColor: '#2563eb' }}
         whileTap={{ scale: 0.95 }}
       >

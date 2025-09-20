@@ -3,58 +3,54 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Hero from "@/components/Hero";
-import DebateCard from "@/components/DebateCard";
-import SearchBar from "@/components/SearchBar";
-import CategoryFilter from "@/components/CategoryFilter";
-
-// Örnek tartışma verileri
-const dummyTopics = [
-  { 
-    id: 1, 
-    title: "Yapay zeka insanlığı tehdit eder mi?", 
-    description: "Yapay zekanın gelişimi ve potansiyel tehlikeleri hakkında fikirlerinizi paylaşın.", 
-    participantCount: 42,
-    tags: ['Teknoloji', 'Etik', 'Gelecek'],
-    isPopular: true
-  },
-  { 
-    id: 2, 
-    title: "Üniversite eğitimi şart mı?", 
-    description: "Modern dünyada üniversite eğitiminin değeri ve alternatifleri üzerine tartışma.", 
-    participantCount: 28,
-    tags: ['Eğitim', 'Kariyer'],
-    isPopular: false
-  },
-  { 
-    id: 3, 
-    title: "İklim değişikliği ile mücadelede bireysel sorumluluk", 
-    description: "Küresel ısınmayı durdurmak için bireylerin yapabilecekleri neler?", 
-    participantCount: 35,
-    tags: ['Çevre', 'Toplum'],
-    isPopular: true
-  },
-  { 
-    id: 4, 
-    title: "Sosyal medya toplumu kutuplaştırıyor mu?", 
-    description: "Sosyal medya platformlarının toplumsal etkileşim ve diyalog üzerindeki etkisi.", 
-    participantCount: 19,
-    tags: ['Medya', 'Toplum'],
-    isPopular: false
-  },
-];
+import Link from "next/link";
+import Hero from "@/components/layout/Hero";
+import DebateCard from "@/components/debate/DebateCard";
+import SearchBar from "@/components/ui/SearchBar";
+import CategoryFilter from "@/components/ui/CategoryFilter";
+import { getAllDebates, transformDebateForDisplay, DebateCategory } from "@/services/debate";
+import type { Debate } from "@/services/debate";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [debates, setDebates] = useState<any[]>([]);
+  const [filteredDebates, setFilteredDebates] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<DebateCategory | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sayfa yüklenme simülasyonu
+  // Fetch debates from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    
-    return () => clearTimeout(timer);
+    fetchDebates();
   }, []);
+
+  // Filter debates when category changes
+  useEffect(() => {
+    if (selectedCategory === null) {
+      setFilteredDebates(debates);
+    } else {
+      const filtered = debates.filter(debate => debate.category === selectedCategory);
+      setFilteredDebates(filtered);
+    }
+  }, [debates, selectedCategory]);
+
+  const fetchDebates = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getAllDebates({ limit: 20 }); // Get more debates for filtering
+      const transformedDebates = response.data.map(transformDebateForDisplay);
+      setDebates(transformedDebates);
+    } catch (err) {
+      console.error('Error fetching debates:', err);
+      setError('Münazaralar yüklenirken bir hata oluştu.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCategoryChange = (category: DebateCategory | null) => {
+    setSelectedCategory(category);
+  };
 
   // Sayfanın içeriği için animasyon varyantları
   const containerVariants = {
@@ -76,6 +72,24 @@ export default function Home() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center h-96">
+        <div className="text-red-600 text-center mb-4">
+          <p className="text-lg font-semibold">{error}</p>
+          <p className="text-sm">Lütfen daha sonra tekrar deneyin.</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Tekrar Dene
+        </button>
+      </div>
+    );
+  }
+
+    console.log("debates " , debates)
   return (
     <motion.div 
       className="px-4 py-6 md:px-6 md:py-8"
@@ -91,7 +105,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Münazara Konuları</h2>
           <motion.button
-            className="text-blue-600 font-medium flex items-center gap-1 text-sm"
+            className="text-blue-600 font-medium flex items-center gap-1 text-sm cursor-pointer hover:text-blue-700 transition-colors"
             whileHover={{ x: 3 }}
           >
             Tümünü Gör
@@ -101,20 +115,36 @@ export default function Home() {
           </motion.button>
         </div>
         
-        <CategoryFilter />
+        <CategoryFilter 
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+        />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {dummyTopics.map((topic) => (
-            <DebateCard 
-              key={topic.id}
-              id={topic.id}
-              title={topic.title}
-              description={topic.description}
-              participantCount={topic.participantCount}
-              tags={topic.tags}
-              isPopular={topic.isPopular}
-            />
-          ))}
+          {filteredDebates.length > 0 ? (
+            filteredDebates.map((debate) => (
+              <DebateCard 
+                key={debate.id}
+                id={debate.id}
+                title={debate.title}
+                description={debate.description}
+                participantCount={debate.participantCount}
+                tags={debate.tags}
+                isPopular={debate.isPopular}
+                category={debate.category}
+                createdAt={debate.createdAt}
+              />
+            ))
+          ) : (
+            <div className="col-span-2 text-center py-8">
+              <p className="text-gray-600 text-lg">
+                {selectedCategory ? 'Bu kategoride münazara bulunmuyor.' : 'Henüz münazara bulunmuyor.'}
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                {selectedCategory ? 'Başka bir kategori deneyin!' : 'İlk münazarayı siz başlatın!'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
       
@@ -128,12 +158,14 @@ export default function Home() {
           className="flex justify-center"
           whileHover={{ scale: 1.03 }}
         >
-          <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Yeni Münazara Başlat
-          </button>
+          <Link href="/create">
+            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg flex items-center gap-2 cursor-pointer transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Yeni Münazara Başlat
+            </button>
+          </Link>
         </motion.div>
       </div>
     </motion.div>

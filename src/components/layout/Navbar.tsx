@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   // Get full name (handle both name and surname if available)
   const getFullName = () => {
@@ -25,6 +27,14 @@ export default function Navbar() {
     return user.name.charAt(0).toUpperCase();
   };
 
+  // Check if the current path is active
+  const isActivePath = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(path);
+  };
+
   // Close user menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -33,6 +43,11 @@ export default function Navbar() {
       }
     }
 
+    console.log("User menu ref:", userMenuRef.current);
+    console.log("Is user menu open:", isUserMenuOpen);
+    console.log("Is user authenticated:", isAuthenticated);
+    console.log("User data:", user);
+    console.log("logout " , logout);
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -53,19 +68,40 @@ export default function Navbar() {
                   <span className="text-white font-bold text-lg">M</span>
                 </div>
                 <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  MünazaraApp
+                  Münazaram
                 </span>
               </Link>
             </motion.div>
             
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
-              <Link href="/" className="border-b-2 border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">
+              <Link 
+                href="/" 
+                className={`${
+                  isActivePath('/') 
+                    ? 'border-b-2 border-blue-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+              >
                 Ana Sayfa
               </Link>
-              <Link href="/explore" className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link 
+                href="/explore" 
+                className={`${
+                  isActivePath('/explore') 
+                    ? 'border-b-2 border-blue-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+              >
                 Keşfet
               </Link>
-              <Link href="/popular" className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link 
+                href="/popular" 
+                className={`${
+                  isActivePath('/popular') 
+                    ? 'border-b-2 border-blue-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+              >
                 Popüler
               </Link>
             </div>
@@ -73,9 +109,19 @@ export default function Navbar() {
           
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             {isAuthenticated && user ? (
-              <div className="relative" ref={userMenuRef}>
+              <>
+                <Link href="/create">
+                  <motion.button
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Münazara Oluştur
+                  </motion.button>
+                </Link>
+                <div className="relative" ref={userMenuRef}>
                 <motion.button
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -85,7 +131,7 @@ export default function Navbar() {
                       {getInitials()}
                     </span>
                   </div>
-                  <span>{getFullName()}</span>
+                  <span className="cursor-pointer">{getFullName()}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -107,18 +153,19 @@ export default function Navbar() {
                         logout();
                         setIsUserMenuOpen(false);
                       }}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left cursor-pointer"
                     >
                       Çıkış Yap
                     </button>
                   </motion.div>
                 )}
               </div>
+              </>
             ) : (
               <>
                 <Link href="/Auth/login">
                   <motion.button
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50"
+                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -128,7 +175,7 @@ export default function Navbar() {
                 
                 <Link href="/Auth/register">
                   <motion.button
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -141,7 +188,7 @@ export default function Navbar() {
           
           <div className="flex items-center sm:hidden">
             <button
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none cursor-pointer transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <span className="sr-only">Menüyü Aç</span>
@@ -168,13 +215,34 @@ export default function Navbar() {
           exit={{ opacity: 0, height: 0 }}
         >
           <div className="pt-2 pb-3 space-y-1">
-            <Link href="/" className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 block pl-3 pr-4 py-2 text-base font-medium">
+            <Link 
+              href="/" 
+              className={`${
+                isActivePath('/') 
+                  ? 'bg-blue-50 border-l-4 border-blue-500 text-blue-700' 
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
               Ana Sayfa
             </Link>
-            <Link href="/explore" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+            <Link 
+              href="/explore" 
+              className={`${
+                isActivePath('/explore') 
+                  ? 'bg-blue-50 border-l-4 border-blue-500 text-blue-700' 
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
               Keşfet
             </Link>
-            <Link href="/popular" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+            <Link 
+              href="/popular" 
+              className={`${
+                isActivePath('/popular') 
+                  ? 'bg-blue-50 border-l-4 border-blue-500 text-blue-700' 
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
               Popüler
             </Link>
           </div>
@@ -192,9 +260,12 @@ export default function Navbar() {
                     <div className="text-sm text-gray-500">{user.email}</div>
                   </div>
                 </div>
+                <Link href="/create" className="block px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 w-full rounded-md text-center">
+                  Münazara Oluştur
+                </Link>
                 <button
                   onClick={logout}
-                  className="block px-4 py-2 text-base font-medium text-white bg-red-600 hover:bg-red-700 w-full rounded-md text-center"
+                  className="block px-4 py-2 text-base font-medium text-white bg-red-600 hover:bg-red-700 w-full rounded-md text-center cursor-pointer"
                 >
                   Çıkış Yap
                 </button>

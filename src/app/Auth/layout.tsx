@@ -12,7 +12,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to home if already authenticated
     if (isAuthenticated()) {
       router.push("/Home");
     }

@@ -1,5 +1,6 @@
 
 import axios from "axios";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/", // Default API URL
@@ -11,7 +12,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -33,7 +34,7 @@ apiClient.interceptors.response.use(
   !error.config.url.includes("/register")
     ) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("authToken");
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         window.location.href = "/Auth/login";
       }
     }

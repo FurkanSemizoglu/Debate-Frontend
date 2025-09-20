@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { login, type LoginData } from "@/services/auth";
+import { login, getUserProfile } from "@/services/auth";
+import { LoginData } from "@/types/auth";
 import { validateEmail, validatePassword } from "@/lib/validation";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const router = useRouter();
@@ -87,6 +88,7 @@ export default function Login() {
     setErrors({});
     
     try {
+      debugger;
       console.log("Calling login API with data:", formData);
       const response = await login(formData);
       console.log("Login response:", response);
@@ -95,9 +97,31 @@ export default function Login() {
       if (response.success) {
         console.log("Login successful, redirecting...");
         
-        // Use AuthContext login if user data is available
-        if (response.user && response.token) {
-          authLogin(response.user, response.token);
+        // Get user profile data after successful login
+        if (response.access_token) {
+          try {
+            const profileResponse = await getUserProfile();
+            if (profileResponse.success && profileResponse.user) {
+              authLogin(profileResponse.user, response.access_token);
+            } else {
+              // If profile fetch fails, still proceed but log the error
+              console.error("Failed to fetch user profile:", profileResponse.message);
+              // You might want to create a minimal user object from token or email
+              authLogin({ 
+                id: "temp-id", 
+                name: formData.email.split('@')[0], 
+                email: formData.email 
+              }, response.access_token);
+            }
+          } catch (profileError) {
+            console.error("Error fetching profile:", profileError);
+            // Fallback user object
+            authLogin({ 
+              id: "temp-id", 
+              name: formData.email.split('@')[0], 
+              email: formData.email 
+            }, response.access_token);
+          }
         }
         
         // Next.js router push with window.location fallback

@@ -1,4 +1,5 @@
 // src/lib/validation.ts
+import { VALIDATION } from "./constants";
 
 export interface ValidationError {
   field: string;
@@ -6,11 +7,10 @@ export interface ValidationError {
 }
 
 export function validateEmail(email: string): string | null {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email) {
     return "E-posta adresi gereklidir";
   }
-  if (!emailRegex.test(email)) {
+  if (!VALIDATION.EMAIL_REGEX.test(email)) {
     return "Geçerli bir e-posta adresi girin";
   }
   return null;
@@ -20,8 +20,8 @@ export function validatePassword(password: string): string | null {
   if (!password) {
     return "Şifre gereklidir";
   }
-  if (password.length < 6) {
-    return "Şifre en az 6 karakter olmalıdır";
+  if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
+    return `Şifre en az ${VALIDATION.MIN_PASSWORD_LENGTH} karakter olmalıdır`;
   }
   return null;
 }
@@ -87,4 +87,30 @@ export function getPasswordStrength(password: string): {
   if (score <= 3) return { score, text: "Orta", color: "text-yellow-500" };
   if (score <= 4) return { score, text: "İyi", color: "text-blue-500" };
   return { score, text: "Güçlü", color: "text-green-500" };
+}
+
+export function validateTitle(title: string): string | null {
+  if (!title) {
+    return "Başlık gereklidir";
+  }
+  if (title.trim().length < 5) {
+    return "Başlık en az 5 karakter olmalıdır";
+  }
+  if (title.trim().length > 100) {
+    return "Başlık en fazla 100 karakter olabilir";
+  }
+  return null;
+}
+
+export function validateTopic(topic: string): string | null {
+  if (!topic) {
+    return "Konu gereklidir";
+  }
+  if (topic.trim().length < 10) {
+    return "Konu açıklaması en az 10 karakter olmalıdır";
+  }
+  if (topic.trim().length > 500) {
+    return "Konu açıklaması en fazla 500 karakter olabilir";
+  }
+  return null;
 }

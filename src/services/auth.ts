@@ -1,46 +1,27 @@
 // src/services/auth.ts
 import apiClient from "./apiClient";
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData {
-  name: string;
-  surname: string;
-  email: string;
-  password: string;
-  age: number;
-  confirmPassword: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  token?: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  message?: string;
-}
+import { LoginData, RegisterData, AuthResponse } from "@/types/auth";
+import { STORAGE_KEYS, API_ENDPOINTS } from "@/lib/constants";
 
 export async function login(data: LoginData): Promise<AuthResponse> {
   try {
     debugger;
-    const res = await apiClient.post("/auth/login", {
+    const res = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, {
       email: data.email,
       password: data.password,
     });
     
     if (res.data.access_token) {
-      localStorage.setItem("authToken", res.data.access_token);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.data.access_token);
+      if (res.data.refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, res.data.refresh_token);
+      }
     }
     
     return {
       success: true,
-      ...res.data,
+      access_token: res.data.access_token,
+      refresh_token: res.data.refresh_token,
     };
   } catch (error: any) {
     return {
@@ -50,9 +31,34 @@ export async function login(data: LoginData): Promise<AuthResponse> {
   }
 }
 
+export async function getUserProfile(): Promise<{ success: boolean; user?: any; message?: string }> {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      return { success: false, message: "No auth token found" };
+    }
+
+    const res = await apiClient.get(API_ENDPOINTS.AUTH.PROFILE, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      success: true,
+      user: res.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to get user profile",
+    };
+  }
+}
+
 export async function registerUser(data: RegisterData): Promise<AuthResponse> {
   try {
-    const res = await apiClient.post("/auth/register", {
+    const res = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, {
       name: data.name,
       surname: data.surname,
       email: data.email,
@@ -60,14 +66,18 @@ export async function registerUser(data: RegisterData): Promise<AuthResponse> {
       age: data.age,
     });
     
-    // Store token in localStorage if provided
-    if (res.data.token) {
-      localStorage.setItem("authToken", res.data.token);
+    // Store tokens in localStorage if provided
+    if (res.data.access_token) {
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.data.access_token);
+      if (res.data.refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, res.data.refresh_token);
+      }
     }
     
     return {
       success: true,
-      ...res.data,
+      access_token: res.data.access_token,
+      refresh_token: res.data.refresh_token,
     };
   } catch (error: any) {
     return {
@@ -78,14 +88,21 @@ export async function registerUser(data: RegisterData): Promise<AuthResponse> {
 }
 
 export function logout(): void {
-  localStorage.removeItem("authToken");
+  localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
   // Redirect to login page or home
   window.location.href = "/Auth/login";
 }
 
 export function getAuthToken(): string | null {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("authToken");
+    return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+  }
+  return null;
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
   }
   return null;
 }
