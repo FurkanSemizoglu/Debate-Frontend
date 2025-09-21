@@ -38,7 +38,7 @@ const getCategoryLabel = (category?: DebateCategory): string => {
 
 export default function DebatePage() {
   const params = useParams();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const debateId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   
   const [debateData, setDebateData] = useState<DebateRoomsResponse | null>(null);

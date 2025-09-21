@@ -37,7 +37,7 @@ export interface LegacyApiErrorResponse {
 }
 
 // New standardized API response format
-export interface StandardApiResponse<T = any> {
+export interface StandardApiResponse<T = unknown> {
   success: boolean;
   statusCode: number;
   timestamp: string;

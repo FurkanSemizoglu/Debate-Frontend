@@ -1,7 +1,6 @@
 // Kategori filtreleme bileşeni
 "use client";
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DebateCategory } from '@/types/debate';
 import { DEBATE_CATEGORIES } from '@/lib/constants';

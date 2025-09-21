@@ -1,7 +1,6 @@
 // Münazara ses kontrol ve tartışma akışı bileşeni
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface DebateControlsProps {

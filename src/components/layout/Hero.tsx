@@ -15,7 +15,7 @@ export default function Hero() {
       <div className="relative px-8 py-16 md:py-20 md:px-16 flex flex-col items-center text-center z-10">
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
           Fikirlerinizi<br />
-          <span className="text-yellow-300">Münazara</span> ile Duyurun
+          <span className="text-yellow-300">Münazaram</span> ile Duyurun
         </h1>
         <p className="text-white text-lg md:text-xl max-w-2xl mb-8">
           Münazara platformumuzda fikirlerinizi paylaşın, başkalarının düşüncelerini keşfedin ve

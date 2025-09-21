@@ -38,28 +38,23 @@ export default function Login() {
   };
 
   const validateForm = (): boolean => {
-    console.log("Validating form with data:", formData);
     const newErrors: Record<string, string> = {};
     
     try {
       const emailError = validateEmail(formData.email);
       if (emailError) {
-        console.log("Email validation error:", emailError);
         newErrors.email = emailError;
       }
       
       const passwordError = validatePassword(formData.password);
       if (passwordError) {
-        console.log("Password validation error:", passwordError);
         newErrors.password = passwordError;
       }
       
       setErrors(newErrors);
       const isValid = Object.keys(newErrors).length === 0;
-      console.log("Form validation result:", isValid, "Errors:", newErrors);
       return isValid;
-    } catch (error) {
-      console.error("Validation error:", error);
+    } catch {
       setErrors({ general: "Doğrulama sırasında bir hata oluştu" });
       return false;
     }
@@ -84,7 +79,6 @@ export default function Login() {
     try {
       const response = await login(formData);
 
-      console.log("Login response:", response);
       if (response.success) {
         addToast("Başarıyla giriş yaptınız!", "success");
         
@@ -100,7 +94,7 @@ export default function Login() {
                 email: formData.email 
               }, response.access_token);
             }
-          } catch (profileError) {
+          } catch {
             authLogin({ 
               id: "temp-id", 
               name: formData.email.split('@')[0], 
@@ -111,14 +105,14 @@ export default function Login() {
         
         try {
           await router.push("/");
-        } catch (routerError) {
-          window.location.href = "/Home";
+        } catch {
+          window.location.href = "/";
         }
       } else {
         addToast(response.message || "E-posta veya şifre hatalı. Lütfen tekrar deneyin.", "error");
         setErrors({ general: response.message || "E-posta veya şifre hatalı. Lütfen tekrar deneyin." });
       }
-    } catch (error) {
+    } catch {
       addToast("Bağlantı hatası. İnternet bağlantınızı kontrol edin ve tekrar deneyin.", "error");
       setErrors({ general: "Bağlantı hatası. İnternet bağlantınızı kontrol edin ve tekrar deneyin." });
     } finally {

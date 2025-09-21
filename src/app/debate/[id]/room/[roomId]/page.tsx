@@ -13,7 +13,7 @@ import {
   leaveDebateRoom
 } from "@/services/room";
 import { DebateCategory } from "@/types/debate";
-import { EnhancedDebateRoomData, EnhancedUser } from "@/types/room";
+import { EnhancedDebateRoomData, EnhancedUser, RoomParticipant } from "@/types/room";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
@@ -65,9 +65,9 @@ export default function DebateRoom() {
     }
 
     try {
-      const isProposer = debateRoom.participants.proposers?.some((p: any) => p.user?.id === user.id) || false;
-      const isOpponent = debateRoom.participants.opponents?.some((p: any) => p.user?.id === user.id) || false;
-      const isAudience = debateRoom.participants.audience?.some((p: any) => p.user?.id === user.id) || false;
+      const isProposer = debateRoom.participants.proposers?.some((p: RoomParticipant) => p.user?.id === user.id) || false;
+      const isOpponent = debateRoom.participants.opponents?.some((p: RoomParticipant) => p.user?.id === user.id) || false;
+      const isAudience = debateRoom.participants.audience?.some((p: RoomParticipant) => p.user?.id === user.id) || false;
       
       if (isProposer || isOpponent || isAudience) {
         setCurrentUserParticipant({
@@ -101,9 +101,9 @@ export default function DebateRoom() {
       console.log("Fetched room data:", roomData);
       setDebateRoom(roomData);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching debate room:", err);
-      addToast(err.response?.data?.message || "Münazara odası yüklenirken bir hata oluştu", "error");
+      addToast((err as Error)?.message || "Münazara odası yüklenirken bir hata oluştu", "error");
     } finally {
       setIsLoading(false);
     }
@@ -132,9 +132,9 @@ export default function DebateRoom() {
       
       addToast("Münazara odasına başarıyla katıldınız!", "success");
       setShowJoinModal(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error joining debate:", err);
-      addToast(err.response?.data?.message || "Münazaraya katılırken bir hata oluştu", "error");
+      addToast((err as Error)?.message || "Münazaraya katılırken bir hata oluştu", "error");
     } finally {
       setIsJoining(false);
     }
@@ -153,9 +153,9 @@ export default function DebateRoom() {
       setDebateRoom(updatedRoom);
       
       addToast("Münazara odasından başarıyla ayrıldınız.", "info");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error leaving debate:", err);
-      addToast(err.response?.data?.message || "Münazaradan ayrılırken bir hata oluştu", "error");
+      addToast((err as Error)?.message || "Münazaradan ayrılırken bir hata oluştu", "error");
     }
   };
 
@@ -174,9 +174,9 @@ export default function DebateRoom() {
       
       addToast("Münazara başarıyla başlatıldı!", "success");
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error starting debate:", err);
-      addToast(err.response?.data?.message || "Münazara başlatılırken bir hata oluştu", "error");
+      addToast((err as Error)?.message || "Münazara başlatılırken bir hata oluştu", "error");
     } finally {
       setIsStarting(false);
     }
@@ -468,8 +468,8 @@ export default function DebateRoom() {
                 </h3>
                 {proposers.length > 0 ? (
                   <div className="space-y-2">
-                    {proposers.map((participant: any) => (
-                      <div key={participant.participantId} className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
+                    {proposers.map((participant: RoomParticipant) => (
+                      <div key={participant.id} className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
                         <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                           {participant.user.name?.charAt(0) || '?'}
                         </div>
@@ -494,8 +494,8 @@ export default function DebateRoom() {
                 </h3>
                 {opponents.length > 0 ? (
                   <div className="space-y-2">
-                    {opponents.map((participant: any) => (
-                      <div key={participant.participantId} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
+                    {opponents.map((participant: RoomParticipant) => (
+                      <div key={participant.id} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
                         <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                           {participant.user.name?.charAt(0) || '?'}
                         </div>
@@ -521,8 +521,8 @@ export default function DebateRoom() {
                 </h3>
                 {audience.length > 0 ? (
                   <div className="space-y-2">
-                    {audience.map((participant: any) => (
-                      <div key={participant.participantId} className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+                    {audience.map((participant: RoomParticipant) => (
+                      <div key={participant.id} className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                           {participant.user.name?.charAt(0) || '?'}
                         </div>
@@ -571,8 +571,8 @@ export default function DebateRoom() {
                   </div>
                   {proposers.length > 0 ? (
                     <div className="space-y-2">
-                      {proposers.map((participant: any) => (
-                        <div key={participant.participantId} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      {proposers.map((participant: RoomParticipant) => (
+                        <div key={participant.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                               {participant.user.name?.charAt(0) || '?'}
@@ -602,8 +602,8 @@ export default function DebateRoom() {
                   </div>
                   {opponents.length > 0 ? (
                     <div className="space-y-2">
-                      {opponents.map((participant: any) => (
-                        <div key={participant.participantId} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                      {opponents.map((participant: RoomParticipant) => (
+                        <div key={participant.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                               {participant.user.name?.charAt(0) || '?'}
@@ -633,8 +633,8 @@ export default function DebateRoom() {
                   </div>
                   {audience.length > 0 ? (
                     <div className="space-y-2">
-                      {audience.map((participant: any) => (
-                        <div key={participant.participantId} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      {audience.map((participant: RoomParticipant) => (
+                        <div key={participant.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                               {participant.user.name?.charAt(0) || '?'}

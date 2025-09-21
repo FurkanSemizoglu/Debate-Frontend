@@ -27,7 +27,7 @@ export default function CreateDebatePage() {
   const [category, setCategory] = useState<DebateCategory | undefined>(undefined);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { addToast } = useToast();
   const router = useRouter();
 

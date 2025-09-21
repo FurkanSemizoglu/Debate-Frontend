@@ -129,7 +129,7 @@ export default function Register() {
         addToast(response.message || "Kayıt başarısız", "error");
         setErrors({ general: response.message || "Kayıt başarısız" });
       }
-    } catch (error) {
+    } catch {
       addToast("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
       setErrors({ general: "Bir hata oluştu. Lütfen tekrar deneyin." });
     } finally {
@@ -381,7 +381,7 @@ export default function Register() {
                 <Link href="#" className="text-purple-600 hover:text-purple-500">
                   Gizlilik Politikası
                 </Link>
-                'nı kabul ediyorum
+                &apos;nı kabul ediyorum
               </label>
               {errors.terms && (
                 <p className="mt-1 text-red-600">{errors.terms}</p>

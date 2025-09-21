@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { finishDebateRoom, RoomStatusEnum } from '@/services/room';
-import type { VoiceChatProps, VoiceChatParticipant, User } from '@/types/debate';
+import { motion } from 'framer-motion';
+import { finishDebateRoom } from '@/services/room';
+import type {  User } from '@/types/debate';
 import type { RoomParticipant } from '@/types/room';
 
 interface VoiceChatInterfaceProps {
@@ -149,7 +149,7 @@ export default function VoiceChatInterface({
             Destekleyenler
           </h3>
           <div className="space-y-2">
-            {proposers.map((proposer: any) => {
+            {proposers.map((proposer: { user: User }) => {
               const speaker = speakers.find(s => s.id === proposer.user.id);
               const isCurrentlySpeaking = speaker?.isCurrentSpeaker;
               
@@ -216,7 +216,7 @@ export default function VoiceChatInterface({
             Karşı Çıkanlar
           </h3>
           <div className="space-y-2">
-            {opponents.map((opponent: any) => {
+            {opponents.map((opponent: { user: User }) => {
               const speaker = speakers.find(s => s.id === opponent.user.id);
               const isCurrentlySpeaking = speaker?.isCurrentSpeaker;
               

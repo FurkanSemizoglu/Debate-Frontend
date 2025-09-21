@@ -10,7 +10,7 @@ export default function Footer() {
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mr-2">
               <span className="text-white font-bold text-lg">M</span>
             </div>
-            <span className="font-bold text-lg text-gray-800">MünazaraApp</span>
+            <span className="font-bold text-lg text-gray-800">Münazaram</span>
           </div>
           
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-sm text-gray-500">
@@ -22,7 +22,7 @@ export default function Footer() {
         </div>
         
         <div className="mt-8 text-center text-sm text-gray-500">
-          &copy; 2025 MünazaraApp. Tüm hakları saklıdır.
+          &copy; 2025 Münazaram. Tüm hakları saklıdır.
         </div>
       </div>
     </footer>
