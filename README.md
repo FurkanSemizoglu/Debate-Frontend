@@ -1,16 +1,24 @@
 # Debate App 🎙️
 
-Modern, real-time debate platform built with Next.js that enables users to create, participate in, and watch live debates across various topics.
+Modern debate platform built with Next.js where users can create, explore, and participate in debates across various topics.
+
+> **⚠️ Project Status**: This project is currently under development. Some features are still being implemented.
 
 ## ✨ Features
 
-- **🔥 Real-time Debates**: Live debate rooms with real-time chat and voice communication
+### ✅ Implemented
 - **🎯 Multiple Categories**: Politics, Technology, Education, Sports, Philosophy, Society, Environment
-- **👥 Role-based Participation**: Spectators, Speakers (For/Against positions)
-- **🔍 Debate Discovery**: Explore and search debates by category and popularity
-- **🎨 Modern UI**: Beautiful, responsive design with Framer Motion animations
-- **🔐 Authentication**: Secure user registration and login system
-- **📱 Mobile Friendly**: Optimized for all device sizes
+- **🔍 Debate Discovery**: Explore and browse debates by category
+- **🎨 Modern UI**: Clean, responsive design with Framer Motion animations
+- **� Mobile Friendly**: Optimized for all device sizes
+- **🏗️ Component Architecture**: Well-structured React components
+
+### 🚧 In Development
+- **�🔐 Authentication**: User registration and login system
+- **� Role-based Participation**: Spectators, Speakers (For/Against positions)
+- **💬 Real-time Chat**: Live chat functionality for debates
+- **🎙️ Voice Communication**: Voice chat interface
+- **🔥 Live Debate Rooms**: Real-time debate sessions
 
 ## 🛠️ Tech Stack
 
@@ -88,18 +96,32 @@ src/
 
 ## 🎯 Key Components
 
-### Debate Components
+### Layout Components
+- **Navbar**: Navigation bar with menu items
+- **Footer**: Site footer information
+- **Hero**: Landing page hero section
+
+### Debate Components (In Development)
 - **DebateCard**: Display debate information in card format
-- **DebateChat**: Real-time chat interface for debates
-- **DebateControls**: Control panel for debate participants
-- **VoiceChatInterface**: Voice communication interface
-- **ParticipantsList**: Display and manage debate participants
+- **DebateProposition**: Show debate topic and proposition
+- **ParticipantsList**: Display debate participants
+- **DebateControls**: Control panel for debate management
 
 ### UI Components
 - **CategoryFilter**: Filter debates by category
-- **SearchBar**: Search debates by title or topic
+- **SearchBar**: Search debates functionality
 - **LoadingSpinner**: Loading state indicator
 - **Toast**: Notification system
+
+## 🔧 Current Development Focus
+
+The project is actively being developed with focus on:
+
+1. **Authentication System**: Implementing user registration and login
+2. **Debate Management**: Creating and managing debate sessions
+3. **Real-time Features**: Adding live chat and voice communication
+4. **User Interface**: Enhancing UI/UX across all pages
+5. **API Integration**: Connecting frontend with backend services
 
 ## 🔧 Configuration
 
@@ -111,11 +133,28 @@ The project uses modern configuration files:
 
 ## 🌐 API Integration
 
-The app includes service layers for:
-- **Authentication**: User login/register/logout
-- **Debates**: Create, fetch, and manage debates
-- **Rooms**: Real-time debate room management
+The app includes service layer structure for:
+- **Authentication**: User login/register functionality (in development)
+- **Debates**: Create, fetch, and manage debates (in development)
+- **Rooms**: Debate room management (planned)
 - **API Client**: Centralized HTTP client configuration
+
+## 🛣️ Roadmap
+
+### Phase 1 (Current)
+- [ ] Complete authentication system
+- [ ] Debate creation and management
+- [ ] Basic user interface improvements
+
+### Phase 2 (Next)
+- [ ] Real-time chat implementation
+- [ ] Voice communication features
+- [ ] Advanced debate controls
+
+### Phase 3 (Future)
+- [ ] Mobile app development
+- [ ] Advanced moderation tools
+- [ ] Analytics and reporting
 
 ## 🎨 Design System
 
@@ -134,7 +173,7 @@ The app includes service layers for:
 
 ## 📄 License
 
-This project is private and proprietary.
+This project is currently in development and private.
 
 ## 🔗 Links
 
@@ -144,4 +183,4 @@ This project is private and proprietary.
 
 ---
 
-Built with ❤️ using Next.js and TypeScript
+🚧 **Development in Progress** - Built with ❤️ using Next.js and TypeScript
