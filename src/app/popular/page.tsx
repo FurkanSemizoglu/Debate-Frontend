@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DebateCard from "@/components/debate/DebateCard";
 import { getAllDebates, transformDebateForDisplay } from "@/services/debate";
+import type { DebateDisplayData } from "@/types/debate";
 
 // Zaman aralığı filtresi için tip tanımı
 type TimeFilter = "day" | "week" | "month" | "year" | "all";
@@ -32,7 +33,7 @@ const trendingTopics = [
 
 export default function Popular() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("week");
-  const [filteredDebates, setFilteredDebates] = useState<any[]>([]);
+  const [filteredDebates, setFilteredDebates] = useState<DebateDisplayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

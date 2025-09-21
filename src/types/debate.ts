@@ -45,6 +45,24 @@ export interface Debate {
   };
 }
 
+export interface DebatesApiResponse {
+  success: boolean;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+  method: string;
+  data: {
+    data: Debate[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
+  message: string;
+}
+
 export interface DebatesResponse {
   data: Debate[];
   meta: {
@@ -53,6 +71,12 @@ export interface DebatesResponse {
     limit: number;
     totalPages: number;
   };
+}
+
+export interface CreateDebateResponse {
+  data: Debate;
+  message: string;
+  success: boolean;
 }
 
 export interface GetDebatesParams {
@@ -84,4 +108,36 @@ export interface DebateRoomData {
     canJoinFor: boolean;
     canJoinAgainst: boolean;
   };
+}
+
+// Interface for transformed debate display data
+export interface DebateDisplayData {
+  id: string;
+  title: string;
+  description: string;
+  participantCount: number;
+  tags: never[];
+  isPopular: boolean;
+  status: string;
+  createdAt: string;
+  createdBy: User;
+  users: User[];
+  category?: DebateCategory;
+}
+
+// Interface for voice chat participants
+export interface VoiceChatParticipant {
+  id: string;
+  user: User;
+  role: ParticipantRole;
+  isOnline: boolean;
+  isSpeaking?: boolean;
+  joinedAt: string;
+}
+
+// Interface for voice chat props
+export interface VoiceChatProps {
+  proposers: VoiceChatParticipant[];
+  opponents: VoiceChatParticipant[];
+  currentUser: User;
 }

@@ -33,9 +33,9 @@ export interface EnhancedDebate {
 }
 
 export interface DebateParticipants {
-  proposers: EnhancedUser[];
-  opponents: EnhancedUser[];
-  audience: EnhancedUser[];
+  proposers: RoomParticipant[];
+  opponents: RoomParticipant[];
+  audience: RoomParticipant[];
 }
 
 export interface ParticipantCounts {
@@ -64,7 +64,7 @@ export interface RoomParticipant {
   id: string;
   userId: string;
   roomId: string;
-  role: "SUPPORTER" | "OPPONENT";
+  role: "PROPOSER" | "OPPONENT" | "AUDIENCE";
   joinedAt: string;
   leftAt: string | null;
   user: {
@@ -78,7 +78,7 @@ export interface RoomParticipant {
 export interface DebateRoomSummary {
   id: string;
   debateId: string;
-  status: "WAITING" | "ACTIVE" | "COMPLETED";
+  status: "WAITING" | "ACTIVE" | "COMPLETED" | "FINISHED" | "ENDED";
   createdAt: string;
   updatedAt: string;
   participants: RoomParticipant[];
@@ -94,6 +94,16 @@ export interface DebateRoomSummary {
   hasOpponent?: boolean;
   canStart?: boolean;
   isReady?: boolean;
+}
+
+export interface DebateRoomsApiResponse {
+  success: boolean;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+  method: string;
+  data: DebateRoomSummary[];
+  message: string;
 }
 
 export interface DebateRoomsResponse {

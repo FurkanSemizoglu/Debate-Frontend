@@ -7,10 +7,12 @@ import { login, getUserProfile } from "@/services/auth";
 import { LoginData } from "@/types/auth";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/Toast";
 
 export default function Login() {
   const router = useRouter();
   const { login: authLogin } = useAuth();
+  const { addToast } = useToast();
   const [formData, setFormData] = useState<LoginData>({
     email: "",
     password: "",
@@ -26,7 +28,6 @@ export default function Login() {
       [name]: value,
     }));
     
-    // Clear specific field error when user starts typing
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -70,43 +71,29 @@ export default function Login() {
     }
   };
   const handleLogin = async () => {
-    console.log("Login button clicked!");
-    
     if (isLoading) {
-      console.log("Already loading, preventing double click");
       return;
     }
-    
-    console.log("Validating form...");
     if (!validateForm()) {
-      console.log("Validation failed");
       return;
     }
     
-    console.log("Starting login process...");
     setIsLoading(true);
     setErrors({});
     
     try {
-      debugger;
-      console.log("Calling login API with data:", formData);
       const response = await login(formData);
-      console.log("Login response:", response);
 
-      
+      console.log("Login response:", response);
       if (response.success) {
-        console.log("Login successful, redirecting...");
+        addToast("Başarıyla giriş yaptınız!", "success");
         
-        // Get user profile data after successful login
         if (response.access_token) {
           try {
             const profileResponse = await getUserProfile();
             if (profileResponse.success && profileResponse.user) {
               authLogin(profileResponse.user, response.access_token);
             } else {
-              // If profile fetch fails, still proceed but log the error
-              console.error("Failed to fetch user profile:", profileResponse.message);
-              // You might want to create a minimal user object from token or email
               authLogin({ 
                 id: "temp-id", 
                 name: formData.email.split('@')[0], 
@@ -114,8 +101,6 @@ export default function Login() {
               }, response.access_token);
             }
           } catch (profileError) {
-            console.error("Error fetching profile:", profileError);
-            // Fallback user object
             authLogin({ 
               id: "temp-id", 
               name: formData.email.split('@')[0], 
@@ -124,19 +109,17 @@ export default function Login() {
           }
         }
         
-        // Next.js router push with window.location fallback
-        try {
-          await router.push("/Home");
+        try {/* 
+          await router.push("/Home"); */
         } catch (routerError) {
-          console.log("Router failed, using window.location");
           window.location.href = "/Home";
         }
       } else {
-        console.log("Login failed:", response.message);
+        addToast(response.message || "E-posta veya şifre hatalı. Lütfen tekrar deneyin.", "error");
         setErrors({ general: response.message || "E-posta veya şifre hatalı. Lütfen tekrar deneyin." });
       }
     } catch (error) {
-      console.error("Login error:", error);
+      addToast("Bağlantı hatası. İnternet bağlantınızı kontrol edin ve tekrar deneyin.", "error");
       setErrors({ general: "Bağlantı hatası. İnternet bağlantınızı kontrol edin ve tekrar deneyin." });
     } finally {
       setIsLoading(false);
@@ -144,11 +127,12 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Hoş Geldiniz</h1>
-        <p className="text-gray-600">Hesabınıza giriş yapın</p>
-      </div>
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/30">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Hoş Geldiniz</h1>
+          <p className="text-gray-600">Hesabınıza giriş yapın</p>
+        </div>
         
         {errors.general && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -180,7 +164,7 @@ export default function Login() {
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                 errors.email 
                   ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
               }`}
               placeholder="ornek@email.com"
               disabled={isLoading}
@@ -205,7 +189,7 @@ export default function Login() {
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors pr-12 ${
                   errors.password 
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                    : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
                 }`}
                 placeholder="Şifrenizi girin"
                 disabled={isLoading}
@@ -238,7 +222,7 @@ export default function Login() {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                 Beni hatırla
@@ -246,7 +230,7 @@ export default function Login() {
             </div>
             
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              <a href="#" className="font-medium text-purple-600 hover:text-purple-500 transition-colors">
                 Şifremi unuttum
               </a>
             </div>
@@ -256,7 +240,7 @@ export default function Login() {
             type="button"
             disabled={isLoading}
             onClick={handleLogin}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -275,11 +259,12 @@ export default function Login() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             Hesabınız yok mu?{" "}
-            <Link href="/Auth/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+            <Link href="/auth/register" className="font-medium text-purple-600 hover:text-purple-500 transition-colors">
               Kayıt olun
             </Link>
           </p>
         </div>
       </div>
-    );
+    </div>
+  );
 }

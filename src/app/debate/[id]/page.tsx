@@ -5,30 +5,19 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import DebateChat from "@/components/debate/DebateChat";
-import { 
-  getDebateRoom,
-  joinDebate,
-  leaveDebate
-} from "@/services/debate";
 import { 
   getDebateRooms,
-  createDebateRoom,
-  getEnhancedDebateRoom,
-  joinEnhancedDebate,
-  leaveEnhancedDebate
+  createDebateRoom
 } from "@/services/room";
 import { 
-  DebateCategory,
-  DebateRoomData,
-  ParticipantRole
+  DebateCategory
 } from "@/types/debate";
 import { 
   DebateRoomsResponse,
-  DebateRoomSummary,
-  EnhancedDebateRoomData
+  DebateRoomSummary
 } from "@/types/room";
 import { useAuth } from "@/contexts/AuthContext";
+import type { ApiErrorResponse } from "@/types/api";
 
 const getCategoryLabel = (category?: DebateCategory): string => {
   const categoryLabels = {
@@ -53,8 +42,9 @@ export default function DebatePage() {
   const [error, setError] = useState<string | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
-  // Get main debate info from the first room's debate data
   const mainDebate = debateData?.data?.[0]?.debate;
+
+  console.log("Debate Data:", debateData);
 
   useEffect(() => {
     fetchDebateRooms();
@@ -70,11 +60,13 @@ export default function DebatePage() {
     try {
       setIsLoading(true);
       const roomsData = await getDebateRooms(debateId);
+      
       setDebateData(roomsData);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as ApiErrorResponse;
       console.error("Error fetching debate rooms:", err);
-      setError(err.response?.data?.message || "Münazara odaları yüklenirken bir hata oluştu");
+      setError(apiError.response?.data?.message || "Münazara odaları yüklenirken bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -86,11 +78,11 @@ export default function DebatePage() {
     try {
       setIsCreatingRoom(true);
       await createDebateRoom(debateId);
-      // Refresh the rooms list
       await fetchDebateRooms();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as ApiErrorResponse;
       console.error("Error creating room:", err);
-      setError(err.response?.data?.message || "Oda oluşturulurken bir hata oluştu");
+      setError(apiError.response?.data?.message || "Oda oluşturulurken bir hata oluştu");
     } finally {
       setIsCreatingRoom(false);
     }
@@ -99,9 +91,12 @@ export default function DebatePage() {
   // Helper function to get status label
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'Aktif';
+      case 'ACTIVE': 
+      case 'LIVE': return 'Canlı';
       case 'WAITING': return 'Beklemede';
-      case 'COMPLETED': return 'Tamamlandı';
+      case 'COMPLETED':
+      case 'FINISHED': 
+      case 'ENDED': return 'Münazara Bitti';
       default: return status;
     }
   };
@@ -109,9 +104,12 @@ export default function DebatePage() {
   // Helper function to get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800';
+      case 'ACTIVE':
+      case 'LIVE': return 'bg-red-100 text-red-800';
       case 'WAITING': return 'bg-yellow-100 text-yellow-800';
-      case 'COMPLETED': return 'bg-gray-100 text-gray-800';
+      case 'COMPLETED':
+      case 'FINISHED':
+      case 'ENDED': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -309,8 +307,121 @@ export default function DebatePage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Link href={`/debate/${debateId}/room/${room.id}`} className="block">
-                    <div className="space-y-4">
+                  {['FINISHED', 'ENDED', 'COMPLETED'].includes(room.status) ? (
+                    <div className="block">
+                      <div className="space-y-4">
+                        {/* Room Header */}
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-gray-800 transition-colors">
+                                  Münazara Odası #{room.id.slice(0, 8)}
+                                </h3>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(room.createdAt).toLocaleDateString('tr-TR', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(room.status)}`}>
+                            {getStatusLabel(room.status)}
+                          </span>
+                        </div>
+
+                        {/* Room Stats */}
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M9 20H4v-2a3 3 0 015.196-2.121m0 0A5.002 5.002 0 0112 15a5.002 5.002 0 012.804 5.121M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="text-sm font-medium text-gray-700">{room.participantCount || 0} Katılımcı</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs text-gray-500">Maksimum: 20</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Room Status Indicators */}
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-gray-600">Roller:</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className={`flex items-center justify-center py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              room.hasProposer 
+                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                : 'bg-gray-50 text-gray-500 border border-gray-200'
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                {room.hasProposer ? (
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+                                  </svg>
+                                )}
+                                <span>Destekleyen</span>
+                              </div>
+                            </div>
+                            <div className={`flex items-center justify-center py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              room.hasOpponent 
+                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                : 'bg-gray-50 text-gray-500 border border-gray-200'
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                {room.hasOpponent ? (
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+                                  </svg>
+                                )}
+                                <span>Karşı Çıkan</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Status */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-medium">Münazara Tamamlandı</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">Bu münazara sona ermiştir. Sonuçları görüntüleyebilirsiniz.</p>
+                        </div>
+
+                        {/* Disabled Button */}
+                        <div className="pt-2">
+                          <div className="w-full bg-gray-300 text-gray-500 py-2 px-4 rounded-lg text-center text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                            </svg>
+                            Münazara Bitti
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Link href={`/debate/${debateId}/room/${room.id}`} className="block">
+                      <div className="space-y-4">
                       {/* Room Header */}
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -399,7 +510,17 @@ export default function DebatePage() {
                       </div>
 
                       {/* Action Status */}
-                      {room.canStart ? (
+                      {['FINISHED', 'ENDED', 'COMPLETED'].includes(room.status) ? (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-medium">Münazara Tamamlandı</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">Bu münazara sona ermiştir. Sonuçları görüntüleyebilirsiniz.</p>
+                        </div>
+                      ) : room.canStart ? (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <div className="flex items-center gap-2 text-blue-800">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,6 +559,7 @@ export default function DebatePage() {
                       </div>
                     </div>
                   </Link>
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -491,7 +613,7 @@ export default function DebatePage() {
                   <p className="text-yellow-700 text-sm mb-4">
                     Münazara odası oluşturmak için önce hesabınıza giriş yapmalısınız.
                   </p>
-                  <Link href="/Auth/login">
+                  <Link href="/auth/login">
                     <button className="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors cursor-pointer">
                       Giriş Yap
                     </button>

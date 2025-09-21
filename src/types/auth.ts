@@ -29,10 +29,28 @@ export interface RegisterData {
   confirmPassword: string;
 }
 
+// Auth specific data types
+export interface AuthTokenData {
+  access_token: string;
+  refresh_token: string;
+  user?: User;
+}
+
+export interface RefreshTokenData {
+  access_token: string;
+}
+
+// Legacy response types for internal use
 export interface AuthResponse {
   success: boolean;
   access_token?: string;
   refresh_token?: string;
+  user?: User;
+  message?: string;
+}
+
+export interface UserProfileResponse {
+  success: boolean;
   user?: User;
   message?: string;
 }

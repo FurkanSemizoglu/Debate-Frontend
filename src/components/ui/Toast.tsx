@@ -94,7 +94,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
         ${typeStyles[toast.type]}
         ${isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
         transition-all duration-300 ease-in-out
-        max-w-sm w-full border rounded-lg p-4 shadow-lg
+        max-w-md min-w-80 w-full border rounded-lg p-4 shadow-lg
       `}
     >
       <div className="flex items-start">

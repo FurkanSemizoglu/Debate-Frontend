@@ -15,10 +15,12 @@ import {
   getPasswordStrength 
 } from "@/lib/validation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/Toast";
 
 export default function Register() {
   const router = useRouter();
   const { login: authLogin } = useAuth();
+  const { addToast } = useToast();
   const [formData, setFormData] = useState<RegisterData>({
     name: "",
     surname: "",
@@ -42,7 +44,6 @@ export default function Register() {
       [name]: name === 'age' ? parseInt(value) || 0 : value,
     }));
     
-    // Clear specific field error when user starts typing
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -122,11 +123,14 @@ export default function Register() {
         }
         
         // Redirect to dashboard or home page
+        addToast("Hesabınız başarıyla oluşturuldu! Hoş geldiniz!", "success");
         router.push("/Home");
       } else {
+        addToast(response.message || "Kayıt başarısız", "error");
         setErrors({ general: response.message || "Kayıt başarısız" });
       }
     } catch (error) {
+      addToast("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
       setErrors({ general: "Bir hata oluştu. Lütfen tekrar deneyin." });
     } finally {
       setIsLoading(false);
@@ -134,11 +138,12 @@ export default function Register() {
   };
 
   return (
-    <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Hesap Oluşturun</h1>
-        <p className="text-gray-600">Tartışma topluluğuna katılın</p>
-      </div>
+    <div className="w-full max-w-lg mx-auto">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/30">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Hesap Oluşturun</h1>
+          <p className="text-gray-600">Tartışma topluluğuna katılın</p>
+        </div>
         {/* bu kısımı toast message yapıcaz */}
         {errors.general && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -155,51 +160,53 @@ export default function Register() {
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Ad
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                errors.name 
-                  ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                  : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
-              }`}
-              placeholder="Adınızı girin"
-              disabled={isLoading}
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Ad
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                  errors.name 
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                    : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
+                }`}
+                placeholder="Adınızı girin"
+                disabled={isLoading}
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
+            </div>
 
-          <div>
-            <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-2">
-              Soyad
-            </label>
-            <input
-              type="text"
-              id="surname"
-              name="surname"
-              value={formData.surname}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                errors.surname 
-                  ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                  : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
-              }`}
-              placeholder="Soyadınızı girin"
-              disabled={isLoading}
-            />
-            {errors.surname && (
-              <p className="mt-1 text-sm text-red-600">{errors.surname}</p>
-            )}
+            <div>
+              <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-2">
+                Soyad
+              </label>
+              <input
+                type="text"
+                id="surname"
+                name="surname"
+                value={formData.surname}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                  errors.surname 
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                    : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
+                }`}
+                placeholder="Soyadınızı girin"
+                disabled={isLoading}
+              />
+              {errors.surname && (
+                <p className="mt-1 text-sm text-red-600">{errors.surname}</p>
+              )}
+            </div>
           </div>
 
           <div>
@@ -250,108 +257,111 @@ export default function Register() {
             )}
           </div>
           
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifre
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors pr-12 ${
-                  errors.password 
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                    : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
-                }`}
-                placeholder="Güçlü bir şifre seçin"
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {formData.password && passwordStrength.score > 0 && (
-              <div className="mt-2">
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        passwordStrength.score <= 2 ? "bg-red-500" :
-                        passwordStrength.score <= 3 ? "bg-yellow-500" :
-                        passwordStrength.score <= 4 ? "bg-blue-500" : "bg-green-500"
-                      }`}
-                      style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className={`text-sm font-medium ${passwordStrength.color}`}>
-                    {passwordStrength.text}
-                  </span>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Şifre
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors pr-12 ${
+                    errors.password 
+                      ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                      : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
+                  }`}
+                  placeholder="Güçlü bir şifre seçin"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </div>
-            )}
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            )}
-          </div>
-          
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Şifre Tekrar
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors pr-12 ${
-                  errors.confirmPassword 
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                    : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
-                }`}
-                placeholder="Şifrenizi tekrar girin"
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
-                {showConfirmPassword ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              )}
             </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-            )}
+            
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Şifre Tekrar
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors pr-12 ${
+                    errors.confirmPassword 
+                      ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                      : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
+                  }`}
+                  placeholder="Şifrenizi tekrar girin"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+              )}
+            </div>
           </div>
           
-          <div className="flex items-start">
+          {formData.password && passwordStrength.score > 0 && (
+            <div className="mt-2">
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      passwordStrength.score <= 2 ? "bg-red-500" :
+                      passwordStrength.score <= 3 ? "bg-yellow-500" :
+                      passwordStrength.score <= 4 ? "bg-blue-500" : "bg-green-500"
+                    }`}
+                    style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                  ></div>
+                </div>
+                <span className={`text-sm font-medium ${passwordStrength.color}`}>
+                  {passwordStrength.text}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-start mt-6">
             <div className="flex items-center h-5">
               <input
                 id="terms"
@@ -382,7 +392,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium mt-6"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -401,11 +411,12 @@ export default function Register() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             Zaten hesabınız var mı?{" "}
-            <Link href="/Auth/login" className="font-medium text-purple-600 hover:text-purple-500 transition-colors">
+            <Link href="/auth/login" className="font-medium text-purple-600 hover:text-purple-500 transition-colors">
               Giriş yapın
             </Link>
           </p>
         </div>
       </div>
-    );
+    </div>
+  );
 }

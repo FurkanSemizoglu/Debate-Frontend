@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Hero from "@/components/layout/Hero";
@@ -9,36 +9,40 @@ import DebateCard from "@/components/debate/DebateCard";
 import SearchBar from "@/components/ui/SearchBar";
 import CategoryFilter from "@/components/ui/CategoryFilter";
 import { getAllDebates, transformDebateForDisplay, DebateCategory } from "@/services/debate";
-import type { Debate } from "@/services/debate";
+import type {  DebateDisplayData } from "@/types/debate";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
-  const [debates, setDebates] = useState<any[]>([]);
-  const [filteredDebates, setFilteredDebates] = useState<any[]>([]);
+  const [debates, setDebates] = useState<DebateDisplayData[]>([]);
+/*   const [filteredDebates, setFilteredDebates] = useState<DebateDisplayData[]>([]); */
   const [selectedCategory, setSelectedCategory] = useState<DebateCategory | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch debates from API
+
   useEffect(() => {
     fetchDebates();
   }, []);
 
-  // Filter debates when category changes
-  useEffect(() => {
+/*   useEffect(() => {
     if (selectedCategory === null) {
       setFilteredDebates(debates);
     } else {
       const filtered = debates.filter(debate => debate.category === selectedCategory);
       setFilteredDebates(filtered);
     }
+  }, [debates, selectedCategory]); */
+
+    const filteredDebates = useMemo(() => {
+    if (!selectedCategory) return debates;
+    return debates.filter(d => d.category === selectedCategory);
   }, [debates, selectedCategory]);
 
   const fetchDebates = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await getAllDebates({ limit: 20 }); // Get more debates for filtering
-      const transformedDebates = response.data.map(transformDebateForDisplay);
+      const response = await getAllDebates({ limit: 20 }); 
+      const transformedDebates = response.data?.map(transformDebateForDisplay) ?? [];
       setDebates(transformedDebates);
     } catch (err) {
       console.error('Error fetching debates:', err);
@@ -80,7 +84,7 @@ export default function Home() {
           <p className="text-sm">Lütfen daha sonra tekrar deneyin.</p>
         </div>
         <button 
-          onClick={() => window.location.reload()} 
+          onClick={() => fetchDebates()} 
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Tekrar Dene
@@ -89,7 +93,6 @@ export default function Home() {
     );
   }
 
-    console.log("debates " , debates)
   return (
     <motion.div 
       className="px-4 py-6 md:px-6 md:py-8"
@@ -97,10 +100,9 @@ export default function Home() {
       animate="visible"
       variants={containerVariants}
     >
-      <Hero />
-      
-      <SearchBar />
-      
+      <Hero />      
+      <SearchBar />     
+
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Münazara Konuları</h2>
@@ -158,13 +160,12 @@ export default function Home() {
           className="flex justify-center"
           whileHover={{ scale: 1.03 }}
         >
-          <Link href="/create">
-            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg flex items-center gap-2 cursor-pointer transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <Link href="/create" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg flex items-center gap-2 cursor-pointer transition-colors">
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
               Yeni Münazara Başlat
-            </button>
+     
           </Link>
         </motion.div>
       </div>

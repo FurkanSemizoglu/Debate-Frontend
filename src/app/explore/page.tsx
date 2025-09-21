@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import SearchBar from "@/components/ui/SearchBar";
 import DebateCard from "@/components/debate/DebateCard";
 import { getAllDebates, transformDebateForDisplay, DebateCategory } from "@/services/debate";
-import type { Debate } from "@/services/debate";
+import type {  DebateDisplayData } from "@/types/debate";
 
 // Filtreleme seçenekleri için arayüz
 interface FilterOption {
@@ -37,16 +37,18 @@ const sortOptions: FilterOption[] = [
 export default function Explore() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSort, setSelectedSort] = useState("latest");
-  const [debates, setDebates] = useState<any[]>([]);
-  const [visibleTopics, setVisibleTopics] = useState<any[]>([]);
+  const [debates, setDebates] = useState<DebateDisplayData[]>([]);
+  const [visibleTopics, setVisibleTopics] = useState<DebateDisplayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // Fetch debates from API
   useEffect(() => {
-    const fetchDebates = async () => {
+    fetchDebates();
+  }, []);
+
+      const fetchDebates = async () => {
       try {
         setIsLoading(true);
         setError(null);
@@ -63,26 +65,19 @@ export default function Explore() {
       }
     };
 
-    fetchDebates();
-  }, []);
-
-  // Kategori değiştiğinde filtreleme işlemi
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
     filterTopics(categoryId, selectedSort);
   };
 
-  // Sıralama değiştiğinde sıralama işlemi
   const handleSortChange = (sortId: string) => {
     setSelectedSort(sortId);
     filterTopics(selectedCategory, sortId);
   };
 
-  // Filtreleme ve sıralama işlemleri
   const filterTopics = (category: string, sort: string) => {
     let filtered = [...debates];
     
-    // Kategori filtreleme
     if (category !== "all") {
       const selectedCategoryOption = categoryOptions.find(opt => opt.id === category);
       if (selectedCategoryOption && selectedCategoryOption.value) {
@@ -90,7 +85,6 @@ export default function Explore() {
       }
     }
     
-    // Sıralama uygula
     switch (sort) {
       case "latest":
         filtered.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
@@ -99,11 +93,9 @@ export default function Explore() {
         filtered.sort((a, b) => b.participantCount - a.participantCount);
         break;
       case "active":
-        // Burada normalde aktif tartışma sıralaması yapılır, örnek için katılımcı sayısını kullandım
         filtered.sort((a, b) => b.participantCount - a.participantCount);
         break;
       case "controversial":
-        // Burada normalde tartışmalı münazara sıralaması yapılır, örnek için rastgele
         filtered.sort(() => Math.random() - 0.5);
         break;
     }
@@ -111,7 +103,6 @@ export default function Explore() {
     setVisibleTopics(filtered);
   };
 
-  // Re-filter when debates change
   useEffect(() => {
     if (debates.length > 0) {
       filterTopics(selectedCategory, selectedSort);

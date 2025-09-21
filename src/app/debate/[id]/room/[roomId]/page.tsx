@@ -8,8 +8,6 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import VoiceChatInterface from "@/components/debate/VoiceChatInterface";
 import { 
   getIndividualDebateRoom,
-  joinEnhancedDebate,
-  leaveEnhancedDebate,
   joinDebateRoom,
   startDebateRoom,
   leaveDebateRoom
@@ -17,6 +15,7 @@ import {
 import { DebateCategory } from "@/types/debate";
 import { EnhancedDebateRoomData, EnhancedUser } from "@/types/room";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/Toast";
 
 const getCategoryLabel = (category?: DebateCategory): string => {
   const categoryLabels = {
@@ -34,13 +33,13 @@ const getCategoryLabel = (category?: DebateCategory): string => {
 export default function DebateRoom() {
   const params = useParams();
   const { user, isAuthenticated } = useAuth();
+  const { addToast } = useToast();
   
   const debateId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const roomId = Array.isArray(params?.roomId) ? params.roomId[0] : params?.roomId;
   
   const [debateRoom, setDebateRoom] = useState<EnhancedDebateRoomData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'PROPOSER' | 'OPPONENT' | 'AUDIENCE'>('PROPOSER');
   const [isJoining, setIsJoining] = useState(false);
@@ -52,7 +51,6 @@ export default function DebateRoom() {
   }, [debateId, roomId]);
 
   useEffect(() => {
-    // User değiştiğinde tekrar kontrol et
     if (user && debateRoom) {
       checkUserParticipation();
     } else if (!user) {
@@ -92,7 +90,7 @@ export default function DebateRoom() {
 
   const fetchDebateRoom = async () => {
     if (!roomId) {
-      setError("Geçersiz oda ID'si");
+      addToast("Geçersiz oda ID'si", "error");
       setIsLoading(false);
       return;
     }
@@ -103,10 +101,9 @@ export default function DebateRoom() {
       console.log("Fetched room data:", roomData);
       setDebateRoom(roomData);
       
-      setError(null);
     } catch (err: any) {
       console.error("Error fetching debate room:", err);
-      setError(err.response?.data?.message || "Münazara odası yüklenirken bir hata oluştu");
+      addToast(err.response?.data?.message || "Münazara odası yüklenirken bir hata oluştu", "error");
     } finally {
       setIsLoading(false);
     }
@@ -114,27 +111,30 @@ export default function DebateRoom() {
 
   const handleJoinDebate = async (role: 'PROPOSER' | 'OPPONENT' | 'AUDIENCE') => {
     if (!roomId || !isAuthenticated) return;
-    debugger;
-    // Check if user is already a participant
+    if (debateRoom && isRoomFinished(debateRoom.room.status)) {
+      addToast("Bu münazara odası sona ermiştir. Yeni katılımcı kabul edilmemektedir.", "warning");
+      setShowJoinModal(false);
+      return;
+    }
+    
     if (currentUserParticipant) {
-      setError("Zaten bu odaya katıldınız. Önce odadan ayrılmanız gerekiyor.");
+      addToast("Zaten bu odaya katıldınız. Önce odadan ayrılmanız gerekiyor.", "warning");
       return;
     }
     
     try {
       setIsJoining(true);
-      setError(null); // Clear any previous errors
       
       await joinDebateRoom(roomId, role);
       
-      // Refresh room data
       const updatedRoom = await getIndividualDebateRoom(roomId);
       setDebateRoom(updatedRoom);
       
+      addToast("Münazara odasına başarıyla katıldınız!", "success");
       setShowJoinModal(false);
     } catch (err: any) {
       console.error("Error joining debate:", err);
-      setError(err.response?.data?.message || "Münazaraya katılırken bir hata oluştu");
+      addToast(err.response?.data?.message || "Münazaraya katılırken bir hata oluştu", "error");
     } finally {
       setIsJoining(false);
     }
@@ -144,19 +144,18 @@ export default function DebateRoom() {
     if (!roomId) return;
     
     try {
-      setError(null); // Clear any previous errors
       
       await leaveDebateRoom(roomId);
       
-      // Clear current user participant immediately
       setCurrentUserParticipant(null);
       
-      // Refresh room data
       const updatedRoom = await getIndividualDebateRoom(roomId);
       setDebateRoom(updatedRoom);
+      
+      addToast("Münazara odasından başarıyla ayrıldınız.", "info");
     } catch (err: any) {
       console.error("Error leaving debate:", err);
-      setError(err.response?.data?.message || "Münazaradan ayrılırken bir hata oluştu");
+      addToast(err.response?.data?.message || "Münazaradan ayrılırken bir hata oluştu", "error");
     }
   };
 
@@ -173,17 +172,16 @@ export default function DebateRoom() {
       const updatedRoom = await getIndividualDebateRoom(roomId);
       setDebateRoom(updatedRoom);
       
+      addToast("Münazara başarıyla başlatıldı!", "success");
+      
     } catch (err: any) {
       console.error("Error starting debate:", err);
-      setError(err.response?.data?.message || "Münazara başlatılırken bir hata oluştu");
+      addToast(err.response?.data?.message || "Münazara başlatılırken bir hata oluştu", "error");
     } finally {
       setIsStarting(false);
     }
   };
 
-  // Check if user is a participant in the room
-
-  // Helper function to get status label
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'ACTIVE': 
@@ -209,27 +207,14 @@ export default function DebateRoom() {
     }
   };
 
+  const isRoomFinished = (status: string) => {
+    return ['COMPLETED', 'FINISHED', 'ENDED'].includes(status);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 mb-4">
-            <p className="text-lg font-semibold">{error}</p>
-          </div>
-          <Link href={`/debate/${debateId}`}>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-              Oda Listesine Geri Dön
-            </button>
-          </Link>
-        </div>
       </div>
     );
   }
@@ -350,14 +335,68 @@ export default function DebateRoom() {
           </div>
         </div>
 
-        {/* Join/Leave Actions */}
-        {isAuthenticated && (
+        {/* Finished Room Message */}
+        {isRoomFinished(debateRoom.room.status) && (
+          <motion.div 
+            className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg shadow-sm p-6 mb-6 border-l-4 border-gray-400"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-semibold text-gray-800">Münazara Tamamlandı</h3>
+                <p className="text-gray-600 mt-1">
+                  Bu münazara odası sona ermiştir. Artık yeni katılımcı kabul edilmemektedir.
+                </p>
+                <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Bitiş: {new Date(debateRoom.room.createdAt).toLocaleDateString('tr-TR', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Join/Leave Actions - Show for all users, but different behavior */}
+        {!isRoomFinished(debateRoom.room.status) && (
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            {!currentUserParticipant ? (
+            {!isAuthenticated ? (
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">Bu münazara odasına katılmak için giriş yapmanız gerekiyor.</p>
+                <button
+                  onClick={() => {
+                    addToast("Münazara odasına katılmak için lütfen giriş yapın", "warning");
+                    window.location.href = "/auth/login";
+                  }}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                  Giriş Yap
+                </button>
+              </div>
+            ) : !currentUserParticipant ? (
               <div className="text-center">
                 <p className="text-gray-600 mb-4">Bu münazara odasına katılmak ister misiniz?</p>
                 <button
-                  onClick={() => setShowJoinModal(true)}
+                  onClick={() => {
+                    setSelectedRole('PROPOSER');
+                    setShowJoinModal(true);
+                  }}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   Odaya Katıl
@@ -381,8 +420,8 @@ export default function DebateRoom() {
               </div>
             )}
             
-            {/* Start Debate Button for Room Creator */}
-            {user && debateRoom && debateRoom.debate.createdBy.id === user.id && debateRoom.room.status === 'WAITING' && (
+            {/* Start Debate Button for Room Creator - Only show if room is not finished */}
+            {user && debateRoom && debateRoom.debate.createdBy.id === user.id && debateRoom.room.status === 'WAITING' && !isRoomFinished(debateRoom.room.status) && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="text-center">
                   <p className="text-gray-600 mb-3">
@@ -408,7 +447,98 @@ export default function DebateRoom() {
         )}
 
         {/* Main Content */}
-        {debateRoom.room.status === 'ACTIVE' || debateRoom.room.status === 'LIVE' ? (
+        {isRoomFinished(debateRoom.room.status) ? (
+          /* Finished Room - Show only participants */
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M9 20H4v-2a3 3 0 015.196-2.121m0 0A5.002 5.002 0 0112 15a5.002 5.002 0 012.804 5.121M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <h2 className="text-xl font-semibold text-gray-800">Münazara Katılımcıları</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Supporters */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-medium text-green-700 flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Destekleyen Taraf ({proposers.length})
+                </h3>
+                {proposers.length > 0 ? (
+                  <div className="space-y-2">
+                    {proposers.map((participant: any) => (
+                      <div key={participant.participantId} className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
+                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {participant.user.name?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{participant.user.name} {participant.user.surname}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">Katılımcı yok</p>
+                )}
+              </div>
+
+              {/* Opponents */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-medium text-red-700 flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Karşı Çıkan Taraf ({opponents.length})
+                </h3>
+                {opponents.length > 0 ? (
+                  <div className="space-y-2">
+                    {opponents.map((participant: any) => (
+                      <div key={participant.participantId} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
+                        <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {participant.user.name?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{participant.user.name} {participant.user.surname}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">Katılımcı yok</p>
+                )}
+              </div>
+
+              {/* Audience */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-medium text-blue-700 flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  İzleyiciler ({audience.length})
+                </h3>
+                {audience.length > 0 ? (
+                  <div className="space-y-2">
+                    {audience.map((participant: any) => (
+                      <div key={participant.participantId} className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {participant.user.name?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{participant.user.name} {participant.user.surname}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">İzleyici yok</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : debateRoom.room.status === 'ACTIVE' || debateRoom.room.status === 'LIVE' ? (
           /* Canlı Münazara Arayüzü */
           <VoiceChatInterface
             roomId={roomId as string}
@@ -566,14 +696,16 @@ export default function DebateRoom() {
               <p className="text-gray-600 mb-6">Hangi tarafta yer almak istiyorsunuz?</p>
               
               <div className="space-y-3 mb-6">
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className={`flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                  selectedRole === 'PROPOSER' ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                }`}>
                   <input
                     type="radio"
                     name="role"
                     value="PROPOSER"
                     checked={selectedRole === 'PROPOSER'}
                     onChange={(e) => setSelectedRole(e.target.value as 'PROPOSER' | 'OPPONENT' | 'AUDIENCE')}
-                    className="mr-3"
+                    className="mr-3 text-green-600 focus:ring-green-500"
                   />
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 bg-green-600 rounded-full"></span>
@@ -581,14 +713,16 @@ export default function DebateRoom() {
                   </div>
                 </label>
                 
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className={`flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                  selectedRole === 'OPPONENT' ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                }`}>
                   <input
                     type="radio"
                     name="role"
                     value="OPPONENT"
                     checked={selectedRole === 'OPPONENT'}
                     onChange={(e) => setSelectedRole(e.target.value as 'PROPOSER' | 'OPPONENT' | 'AUDIENCE')}
-                    className="mr-3"
+                    className="mr-3 text-red-600 focus:ring-red-500"
                   />
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 bg-red-600 rounded-full"></span>
@@ -596,14 +730,16 @@ export default function DebateRoom() {
                   </div>
                 </label>
                 
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className={`flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                  selectedRole === 'AUDIENCE' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                }`}>
                   <input
                     type="radio"
                     name="role"
                     value="AUDIENCE"
                     checked={selectedRole === 'AUDIENCE'}
                     onChange={(e) => setSelectedRole(e.target.value as 'PROPOSER' | 'OPPONENT' | 'AUDIENCE')}
-                    className="mr-3"
+                    className="mr-3 text-blue-600 focus:ring-blue-500"
                   />
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 bg-blue-600 rounded-full"></span>

@@ -5,11 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/Toast";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const { addToast } = useToast();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -150,6 +152,7 @@ export default function Navbar() {
                     </div>
                     <button
                       onClick={() => {
+                        addToast("Başarıyla çıkış yaptınız!", "info");
                         logout();
                         setIsUserMenuOpen(false);
                       }}
@@ -163,7 +166,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/Auth/login">
+                <Link href="/auth/login">
                   <motion.button
                     className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
                     whileHover={{ scale: 1.05 }}
@@ -173,7 +176,7 @@ export default function Navbar() {
                   </motion.button>
                 </Link>
                 
-                <Link href="/Auth/register">
+                <Link href="/auth/register">
                   <motion.button
                     className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
                     whileHover={{ scale: 1.05 }}
@@ -264,7 +267,10 @@ export default function Navbar() {
                   Münazara Oluştur
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    addToast("Başarıyla çıkış yaptınız!", "info");
+                    logout();
+                  }}
                   className="block px-4 py-2 text-base font-medium text-white bg-red-600 hover:bg-red-700 w-full rounded-md text-center cursor-pointer"
                 >
                   Çıkış Yap
@@ -272,10 +278,10 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center px-4 space-x-3">
-                <Link href="/Auth/login" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 w-full rounded-md">
+                <Link href="/auth/login" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 w-full rounded-md">
                   Giriş
                 </Link>
-                <Link href="/Auth/register" className="block px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 w-full rounded-md text-center">
+                <Link href="/auth/register" className="block px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 w-full rounded-md text-center">
                   Kayıt Ol
                 </Link>
               </div>

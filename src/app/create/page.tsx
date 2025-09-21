@@ -8,6 +8,8 @@ import { createDebate } from "@/services/debate";
 import { DebateCategory } from "@/types/debate";
 import { validateTitle, validateTopic } from "@/lib/validation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useToast } from "@/components/ui/Toast";
+import type { ApiErrorResponse, ValidationError } from "@/types/api";
 
 const categoryOptions = [
   { value: DebateCategory.POLITICS, label: "Politika" },
@@ -26,12 +28,48 @@ export default function CreateDebatePage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated, user } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
 
-  // Redirect if not authenticated
+  // Show login prompt if not authenticated
   if (!isAuthenticated) {
-    router.push("/Auth/login");
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+        <div className="max-w-2xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-lg shadow-lg p-8 text-center"
+          >
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Münazara Oluşturmak İçin Giriş Yapın</h1>
+              <p className="text-gray-600 mb-6">
+                Yeni bir münazara oluşturmak için öncelikle hesabınıza giriş yapmanız gerekiyor.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => router.push("/auth/login")}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Giriş Yap
+                </button>
+                <button
+                  onClick={() => router.push("/auth/register")}
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Kayıt Ol
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
   }
 
   const validateForm = () => {
@@ -65,21 +103,25 @@ export default function CreateDebatePage() {
       
       const createdDebate = await createDebate(debateData);
       
-      // Redirect to the created debate page
-      router.push(`/debate/${createdDebate.id}`);
-    } catch (error: any) {
-      console.error("Error creating debate:", error);
+      addToast("Münazara başarıyla oluşturuldu!", "success");
+
+      router.push(`/debate/${createdDebate.data.id}`);
+    } catch (error: unknown) {
+      const apiError = error as ApiErrorResponse;
       
-      // Handle server validation errors
-      if (error.response?.data?.errors) {
+      // Handle server validation errors (if backend sends them)
+      if (apiError.response?.data?.errors) {
         const serverErrors: { [key: string]: string } = {};
-        error.response.data.errors.forEach((err: any) => {
+        apiError.response.data.errors.forEach((err: ValidationError) => {
           serverErrors[err.field] = err.message;
         });
         setErrors(serverErrors);
       } else {
+        // Use the new backend error format
+        const errorMessage = apiError.response?.data?.message || "Münazara oluşturulurken bir hata oluştu";
+        addToast(errorMessage, "error");
         setErrors({
-          general: error.response?.data?.message || "Münazara oluşturulurken bir hata oluştu"
+          general: errorMessage
         });
       }
     } finally {

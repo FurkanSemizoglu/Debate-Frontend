@@ -4,19 +4,21 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { finishDebateRoom, RoomStatusEnum } from '@/services/room';
+import type { VoiceChatProps, VoiceChatParticipant, User } from '@/types/debate';
+import type { RoomParticipant } from '@/types/room';
 
 interface VoiceChatInterfaceProps {
   roomId: string;
-  proposers: any[];
-  opponents: any[];
-  currentUser: any;
+  proposers: RoomParticipant[];
+  opponents: RoomParticipant[];
+  currentUser: User | null;
   onRoomClosed: () => void;
 }
 
 interface Speaker {
   id: string;
   name: string;
-  surname: string;
+  surname?: string;
   role: 'PROPOSER' | 'OPPONENT';
   isCurrentSpeaker: boolean;
   isMuted: boolean;
