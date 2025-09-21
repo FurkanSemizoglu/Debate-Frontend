@@ -4,8 +4,22 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSearch?: (searchTerm: string) => void;
+  placeholder?: string;
+}
+
+export default function SearchBar({ onSearch, placeholder = "Bir münazara konusu ara..." }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    // Anında filtreleme için onSearch'ü çağır
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
   
   return (
     <div className="relative w-full max-w-lg mx-auto mb-6">
@@ -17,9 +31,9 @@ export default function SearchBar() {
       <motion.input
         type="text"
         className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full text-sm focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm"
-        placeholder="Bir münazara konusu ara..."
+        placeholder={placeholder}
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={handleInputChange}
         whileFocus={{ boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.3)' }}
       />
       <motion.button

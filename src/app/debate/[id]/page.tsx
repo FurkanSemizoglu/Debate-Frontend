@@ -10,8 +10,12 @@ import {
   createDebateRoom
 } from "@/services/room";
 import { 
-  DebateCategory
+  DebateCategory,
+  Debate
 } from "@/types/debate";
+import { 
+  getDebateById 
+} from "@/services/debate";
 import { 
   DebateRoomsResponse,
   DebateRoomSummary
@@ -38,17 +42,46 @@ export default function DebatePage() {
   const debateId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   
   const [debateData, setDebateData] = useState<DebateRoomsResponse | null>(null);
+  const [debate, setDebate] = useState<Debate | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
-  const mainDebate = debateData?.data?.[0]?.debate;
+  const mainDebate = debate;
 
   console.log("Debate Data:", debateData);
 
   useEffect(() => {
-    fetchDebateRooms();
+    fetchDebateData();
   }, [debateId]);
+
+  const fetchDebateData = async () => {
+    if (!debateId) {
+      setError("Geçersiz münazara ID'si");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Debate bilgilerini ve room bilgilerini paralel olarak al
+      const [debateResponse, roomsResponse] = await Promise.all([
+        getDebateById(debateId),
+        getDebateRooms(debateId)
+      ]);
+      
+      setDebate(debateResponse);
+      setDebateData(roomsResponse);
+      setError(null);
+    } catch (err: unknown) {
+      const apiError = err as ApiErrorResponse;
+      console.error("Error fetching debate data:", err);
+      setError(apiError.response?.data?.message || "Münazara bilgileri yüklenirken bir hata oluştu");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchDebateRooms = async () => {
     if (!debateId) {
@@ -78,7 +111,7 @@ export default function DebatePage() {
     try {
       setIsCreatingRoom(true);
       await createDebateRoom(debateId);
-      await fetchDebateRooms();
+      await fetchDebateRooms(); // Sadece room bilgilerini yenile
     } catch (err: unknown) {
       const apiError = err as ApiErrorResponse;
       console.error("Error creating room:", err);
@@ -139,7 +172,7 @@ export default function DebatePage() {
     );
   }
 
-  if (!debateData) {
+  if (!debate && !debateData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -233,18 +266,18 @@ export default function DebatePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">{debateData?.data.length || 0}</p>
+                  <p className="text-2xl font-bold text-blue-600">{debateData?.data?.length || 0}</p>
                   <p className="text-sm text-gray-600">Toplam Oda</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">
-                    {debateData?.data.filter((room: DebateRoomSummary) => room.status === 'ACTIVE').length || 0}
+                    {debateData?.data?.filter((room: DebateRoomSummary) => room.status === 'ACTIVE').length || 0}
                   </p>
                   <p className="text-sm text-gray-600">Aktif Oda</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-purple-600">
-                    {debateData?.data.reduce((total: number, room: DebateRoomSummary) => total + (room.participantCount || 0), 0) || 0}
+                    {debateData?.data?.reduce((total: number, room: DebateRoomSummary) => total + (room.participantCount || 0), 0) || 0}
                   </p>
                   <p className="text-sm text-gray-600">Toplam Katılımcı</p>
                 </div>
@@ -264,7 +297,7 @@ export default function DebatePage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Münazara Odaları</h2>
               <p className="text-gray-600">
-                {debateData?.data.length ? 
+                {debateData?.data?.length ? 
                   `Bu münazara için ${debateData.data.length} oda bulundu` :
                   "Bu münazara için henüz oda oluşturulmamış"
                 }
@@ -298,7 +331,7 @@ export default function DebatePage() {
           </div>
 
           {/* Rooms Grid */}
-          {debateData?.data.length ? (
+          {debateData?.data?.length ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {debateData.data.map((room: DebateRoomSummary) => (
                 <motion.div

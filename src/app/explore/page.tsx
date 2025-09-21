@@ -43,6 +43,7 @@ export default function Explore() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchDebates();
@@ -67,17 +68,31 @@ export default function Explore() {
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    filterTopics(categoryId, selectedSort);
+    filterTopics(categoryId, selectedSort, searchTerm);
   };
 
   const handleSortChange = (sortId: string) => {
     setSelectedSort(sortId);
-    filterTopics(selectedCategory, sortId);
+    filterTopics(selectedCategory, sortId, searchTerm);
   };
 
-  const filterTopics = (category: string, sort: string) => {
+  const handleSearch = (query: string) => {
+    setSearchTerm(query);
+    filterTopics(selectedCategory, selectedSort, query);
+  };
+
+  const filterTopics = (category: string, sort: string, search: string = "") => {
     let filtered = [...debates];
     
+    // Arama filtresi (isme göre)
+    if (search.trim() !== "") {
+      filtered = filtered.filter(debate => 
+        debate.title.toLowerCase().includes(search.toLowerCase()) ||
+        debate.description.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    // Kategori filtresi
     if (category !== "all") {
       const selectedCategoryOption = categoryOptions.find(opt => opt.id === category);
       if (selectedCategoryOption && selectedCategoryOption.value) {
@@ -85,6 +100,7 @@ export default function Explore() {
       }
     }
     
+    // Sıralama
     switch (sort) {
       case "latest":
         filtered.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
@@ -105,9 +121,9 @@ export default function Explore() {
 
   useEffect(() => {
     if (debates.length > 0) {
-      filterTopics(selectedCategory, selectedSort);
+      filterTopics(selectedCategory, selectedSort, searchTerm);
     }
-  }, [debates, selectedCategory, selectedSort]);
+  }, [debates, selectedCategory, selectedSort, searchTerm]);
 
   // Sayfa animasyonları
   const containerVariants = {
@@ -140,7 +156,7 @@ export default function Explore() {
         </p>
       </motion.div>
       
-      <SearchBar />
+      <SearchBar onSearch={handleSearch} />
 
       {isLoading ? (
         <div className="flex justify-center items-center h-96">

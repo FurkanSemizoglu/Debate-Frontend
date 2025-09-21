@@ -17,6 +17,7 @@ export default function Home() {
 /*   const [filteredDebates, setFilteredDebates] = useState<DebateDisplayData[]>([]); */
   const [selectedCategory, setSelectedCategory] = useState<DebateCategory | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
 
   useEffect(() => {
@@ -33,9 +34,27 @@ export default function Home() {
   }, [debates, selectedCategory]); */
 
     const filteredDebates = useMemo(() => {
-    if (!selectedCategory) return debates;
-    return debates.filter(d => d.category === selectedCategory);
-  }, [debates, selectedCategory]);
+    let filtered = debates;
+    
+    // Arama filtresi
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter(debate => 
+        debate.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        debate.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Kategori filtresi
+    if (selectedCategory) {
+      filtered = filtered.filter(d => d.category === selectedCategory);
+    }
+    
+    return filtered;
+  }, [debates, selectedCategory, searchTerm]);
+
+  const handleSearch = (query: string) => {
+    setSearchTerm(query);
+  };
 
   const fetchDebates = async () => {
     try {
@@ -101,7 +120,7 @@ export default function Home() {
       variants={containerVariants}
     >
       <Hero />      
-      <SearchBar />     
+      <SearchBar onSearch={handleSearch} />     
 
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">

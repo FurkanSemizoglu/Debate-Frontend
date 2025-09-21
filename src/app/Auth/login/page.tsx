@@ -109,8 +109,8 @@ export default function Login() {
           }
         }
         
-        try {/* 
-          await router.push("/Home"); */
+        try {
+          await router.push("/");
         } catch (routerError) {
           window.location.href = "/Home";
         }
