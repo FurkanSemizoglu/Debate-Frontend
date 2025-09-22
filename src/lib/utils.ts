@@ -1,5 +1,5 @@
 import { VALIDATION } from "./constants";
-import type { ApiErrorResponse } from "@/types/api";
+import type { ErrorResponse } from "@/types/api";
 
 export function classNames(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -8,10 +8,10 @@ export function classNames(...classes: (string | undefined | null | false)[]): s
 export function formatError(error: unknown): string {
   if (typeof error === "string") return error;
   if (error && typeof error === "object") {
-    const apiError = error as ApiErrorResponse;
+    const apiError = error as ErrorResponse;
     
-    if (apiError.response?.data?.message) {
-      return apiError.response.data.message;
+    if (apiError.message) {
+      return apiError.message;
     }
     
     const genericError = error as { message?: string };

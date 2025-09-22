@@ -1,6 +1,6 @@
 import apiClient from "./apiClient";
 import { LoginData, RegisterData, AuthResponse, User, UserProfileResponse, AuthTokenData, RefreshTokenData } from "@/types/auth";
-import { ApiErrorResponse, StandardApiResponse } from "@/types/api";
+import { ErrorResponse, StandardApiResponse } from "@/types/api";
 import { STORAGE_KEYS, API_ENDPOINTS } from "@/lib/constants";
 
 export async function login(data: LoginData): Promise<AuthResponse> {
@@ -36,10 +36,19 @@ export async function login(data: LoginData): Promise<AuthResponse> {
       user: authData.user,
     };
   } catch (error: unknown) {
-    const apiError = error as ApiErrorResponse;
+    // Handle axios error response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { data: ErrorResponse } };
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || "Giriş başarısız. Lütfen tekrar deneyin.",
+      };
+    }
+    
+    // Handle other types of errors
     return {
       success: false,
-      message: apiError.response?.data?.message || "Giriş başarısız. Lütfen tekrar deneyin.",
+      message: "Giriş başarısız. Lütfen tekrar deneyin.",
     };
   }
 }
@@ -62,14 +71,22 @@ export async function getUserProfile(): Promise<UserProfileResponse> {
       user: res.data.data,
     };
   } catch (error: unknown) {
-    const apiError = error as ApiErrorResponse;
-
-    if (apiError.response?.status === 401) {
-      logout();
+    // Handle axios error response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { data: ErrorResponse; status: number } };
+      
+      if (axiosError.response?.status === 401) {
+        logout();
+      }
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || "Failed to get user profile",
+      };
     }
+    
     return {
       success: false,
-      message: apiError.response?.data?.message || "Failed to get user profile",
+      message: "Failed to get user profile",
     };
   }
 }
@@ -109,10 +126,18 @@ export async function registerUser(data: RegisterData): Promise<AuthResponse> {
       user: authData.user,
     };
   } catch (error: unknown) {
-    const apiError = error as ApiErrorResponse;
+    // Handle axios error response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { data: ErrorResponse } };
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || "Kayıt başarısız. Lütfen tekrar deneyin.",
+      };
+    }
+    
     return {
       success: false,
-      message: apiError.response?.data?.message || "Kayıt başarısız. Lütfen tekrar deneyin.",
+      message: "Kayıt başarısız. Lütfen tekrar deneyin.",
     };
   }
 }
@@ -180,11 +205,20 @@ export async function refreshAuthToken(): Promise<{ success: boolean; access_tok
       access_token: tokenData.access_token,
     };
   } catch (error: unknown) {
-    const apiError = error as ApiErrorResponse;
+    // Handle axios error response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { data: ErrorResponse } };
+      logout();
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || "Token refresh failed",
+      };
+    }
+    
     logout();
     return {
       success: false,
-      message: apiError.response?.data?.message || "Token refresh failed",
+      message: "Token refresh failed",
     };
   }
 }
@@ -199,10 +233,13 @@ export async function ensureValidToken(): Promise<boolean> {
     await apiClient.get(API_ENDPOINTS.AUTH.PROFILE);
     return true;
   } catch (error: unknown) {
-    const apiError = error as ApiErrorResponse;
-    if (apiError.response?.status === 401) {
-      const refreshResult = await refreshAuthToken();
-      return refreshResult.success;
+    // Handle axios error response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number } };
+      if (axiosError.response?.status === 401) {
+        const refreshResult = await refreshAuthToken();
+        return refreshResult.success;
+      }
     }
     return false;
   }

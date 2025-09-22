@@ -10,60 +10,72 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-
+    setIsMounted(true);
     checkAuth();
   }, []);
- const checkAuth = async () => {
-      try {
-        const token = getAuthToken();
+
+  const checkAuth = async () => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const token = getAuthToken();
+      
+      if (token) {
+        const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
         
-        if (token) {
-          const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
-          
-          if (userData) {
-            const parsedUserData = JSON.parse(userData);
-            setUser(parsedUserData);
-          } else {
-            try {
-              const profileResponse = await getUserProfile();
-              if (profileResponse.success && profileResponse.user) {
-                setUser(profileResponse.user);
-                localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(profileResponse.user));
-              } else {
-                handleLogout();
-              }
-            } catch (error) {
-              console.error("Error fetching user profile:", error);
+        if (userData) {
+          const parsedUserData = JSON.parse(userData);
+          setUser(parsedUserData);
+        } else {
+          try {
+            const profileResponse = await getUserProfile();
+            if (profileResponse.success && profileResponse.user) {
+              setUser(profileResponse.user);
+              localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(profileResponse.user));
+            } else {
               handleLogout();
             }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+            handleLogout();
           }
         }
-      } catch (error) {
-        console.error("Error checking authentication:", error);
-        handleLogout();
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      handleLogout();
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleLogin = (user: User, token: string) => {
-    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
-    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+    }
     setUser(user);
   };
 
   const handleLogout = () => {
     logout();
-    localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    }
     setUser(null);
   };
 
   const value = {
     user,
     isAuthenticated: !!user,
-    isLoading,
+    isLoading: isLoading || !isMounted,
     login: handleLogin,
     logout: handleLogout,
   };
