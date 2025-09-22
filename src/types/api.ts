@@ -1,4 +1,4 @@
-// src/types/api.ts
+
 
 export interface ValidationError {
   field: string;

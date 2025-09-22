@@ -1,4 +1,3 @@
-// src/types/debate.ts
 
 export interface User {
   id: string;

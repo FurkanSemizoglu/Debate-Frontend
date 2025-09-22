@@ -1,4 +1,3 @@
-// src/types/room.ts
 import { DebateCategory } from "./debate";
 
 export enum RoomStatusEnum {
@@ -88,7 +87,6 @@ export interface DebateRoomSummary {
     topic: string;
     category: DebateCategory;
   };
-  // Computed properties for backward compatibility
   participantCount?: number;
   hasProposer?: boolean;
   hasOpponent?: boolean;

@@ -1,4 +1,3 @@
-// src/services/auth.ts
 import apiClient from "./apiClient";
 import { LoginData, RegisterData, AuthResponse, User, UserProfileResponse, AuthTokenData, RefreshTokenData } from "@/types/auth";
 import { ApiErrorResponse, StandardApiResponse } from "@/types/api";
@@ -6,7 +5,6 @@ import { STORAGE_KEYS, API_ENDPOINTS } from "@/lib/constants";
 
 export async function login(data: LoginData): Promise<AuthResponse> {
   try {
-    // Basit validasyon
     if (!data.email || !data.password) {
       return {
         success: false,
@@ -19,7 +17,6 @@ export async function login(data: LoginData): Promise<AuthResponse> {
       password: data.password,
     });
     
-    // Extract tokens from the nested data object
     const authData = res.data.data;
     
     if (authData.access_token && typeof window !== "undefined") {
@@ -79,7 +76,6 @@ export async function getUserProfile(): Promise<UserProfileResponse> {
 
 export async function registerUser(data: RegisterData): Promise<AuthResponse> {
   try {
-    // Basit validasyon
     if (!data.name || !data.email || !data.password) {
       return {
         success: false,
@@ -94,8 +90,6 @@ export async function registerUser(data: RegisterData): Promise<AuthResponse> {
       password: data.password,
       age: data.age,
     });
-    
-    // Extract tokens from the nested data object
     const authData = res.data.data;
     
     if (authData.access_token && typeof window !== "undefined") {
@@ -175,7 +169,6 @@ export async function refreshAuthToken(): Promise<{ success: boolean; access_tok
       refresh_token: refreshToken,
     });
 
-    // Extract token from the nested data object
     const tokenData = res.data.data;
 
     if (tokenData.access_token) {

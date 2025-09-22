@@ -1,4 +1,4 @@
-// src/services/room.ts
+
 import apiClient from "./apiClient";
 import { 
 
@@ -10,7 +10,6 @@ import {
   DebateRoomsApiResponse
 } from "@/types/room";
 
-// Re-export the enum for convenience
 export { RoomStatusEnum } from "@/types/room";
 
 

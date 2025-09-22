@@ -1,4 +1,3 @@
-// src/services/debate.ts
 import apiClient from "./apiClient";
 import { 
   CreateDebateData, 
@@ -27,7 +26,6 @@ export async function getAllDebates(params: GetDebatesParams = {}): Promise<Deba
     
     const response = await apiClient.get<DebatesApiResponse>(`/debates/getAllDebates?${queryParams.toString()}`);
     
-    // API response yapısından clean data çıkarıyoruz
     return {
       data: response.data.data.data || [],
       meta: response.data.data.meta || { total: 0, page: 1, limit: 10, totalPages: 0 }
@@ -41,7 +39,6 @@ export async function getAllDebates(params: GetDebatesParams = {}): Promise<Deba
 export async function getDebateById(id: string): Promise<Debate> {
   try {
     const response = await apiClient.get(`debates/getDebate/${id}`);
-    // Extract data from the new API response format
     return response.data.data || response.data;
   } catch (error) {
     console.error('Error fetching debate:', error);
@@ -52,7 +49,6 @@ export async function getDebateById(id: string): Promise<Debate> {
 export async function createDebate(debateData: CreateDebateData): Promise<CreateDebateResponse> {
   try {
     const response = await apiClient.post('/debates/createDebate', debateData);
-    // Extract data from the new API response format
     return {
       success: response.data.success || true,
       data: response.data.data || response.data,
@@ -67,7 +63,6 @@ export async function createDebate(debateData: CreateDebateData): Promise<Create
 export async function getDebateRoom(id: string): Promise<EnhancedDebateRoomData> {
   try {
     const response = await apiClient.get(`/debates/room/${id}`);
-    // Extract data from the new API response format
     return response.data.data || response.data;
   } catch (error) {
     console.error('Error fetching debate room:', error);
@@ -75,15 +70,14 @@ export async function getDebateRoom(id: string): Promise<EnhancedDebateRoomData>
   }
 }
 
-// Transform backend debate data to match frontend expectations
 export function transformDebateForDisplay(debate: Debate) {
   return {
-    id: debate.id, // Keep UUID as string for proper backend communication
+    id: debate.id, 
     title: debate.title,
     description: debate.topic,
     participantCount: debate._count.users,
-    tags: [], // Backend doesn't return tags yet, can be added later
-    isPopular: debate._count.users > 20, // Simple popularity logic
+    tags: [], 
+    isPopular: debate._count.users > 20, 
     status: debate.status,
     createdAt: debate.createdAt,
     createdBy: debate.createdBy,
@@ -91,8 +85,6 @@ export function transformDebateForDisplay(debate: Debate) {
     category: debate.category,
   };
 }
-
-// Export types for external use
 export type { 
   Debate, 
   CreateDebateData, 
@@ -101,5 +93,4 @@ export type {
   DebateParticipant
 } from "@/types/debate";
 
-// Export enum as value (not type)
 export { DebateCategory, ParticipantRole } from "@/types/debate";

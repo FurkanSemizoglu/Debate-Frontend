@@ -14,29 +14,21 @@ import type {  DebateDisplayData } from "@/types/debate";
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [debates, setDebates] = useState<DebateDisplayData[]>([]);
-/*   const [filteredDebates, setFilteredDebates] = useState<DebateDisplayData[]>([]); */
   const [selectedCategory, setSelectedCategory] = useState<DebateCategory | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
 
   useEffect(() => {
+
     fetchDebates();
+    console.log("API URL on client:", process.env.NEXT_PUBLIC_API_URL);
   }, []);
 
-/*   useEffect(() => {
-    if (selectedCategory === null) {
-      setFilteredDebates(debates);
-    } else {
-      const filtered = debates.filter(debate => debate.category === selectedCategory);
-      setFilteredDebates(filtered);
-    }
-  }, [debates, selectedCategory]); */
 
     const filteredDebates = useMemo(() => {
     let filtered = debates;
     
-    // Arama filtresi
     if (searchTerm.trim() !== "") {
       filtered = filtered.filter(debate => 
         debate.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,7 +36,6 @@ export default function Home() {
       );
     }
     
-    // Kategori filtresi
     if (selectedCategory) {
       filtered = filtered.filter(d => d.category === selectedCategory);
     }
