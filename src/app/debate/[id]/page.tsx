@@ -21,7 +21,7 @@ import {
   DebateRoomSummary
 } from "@/types/room";
 import { useAuth } from "@/contexts/AuthContext";
-import type { ApiErrorResponse } from "@/types/api";
+import type { ErrorResponse } from "@/types/api";
 
 const getCategoryLabel = (category?: DebateCategory): string => {
   const categoryLabels = {
@@ -72,9 +72,9 @@ export default function DebatePage() {
       setDebateData(roomsResponse);
       setError(null);
     } catch (err: unknown) {
-      const apiError = err as ApiErrorResponse;
+      const apiError = err as ErrorResponse;
       console.error("Error fetching debate data:", err);
-      setError(apiError.response?.data?.message || "Münazara bilgileri yüklenirken bir hata oluştu");
+      setError(apiError.message || "Münazara bilgileri yüklenirken bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +94,9 @@ export default function DebatePage() {
       setDebateData(roomsData);
       setError(null);
     } catch (err: unknown) {
-      const apiError = err as ApiErrorResponse;
+      const apiError = err as ErrorResponse;
       console.error("Error fetching debate rooms:", err);
-      setError(apiError.response?.data?.message || "Münazara odaları yüklenirken bir hata oluştu");
+      setError(apiError.message || "Münazara odaları yüklenirken bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -110,9 +110,9 @@ export default function DebatePage() {
       await createDebateRoom(debateId);
       await fetchDebateRooms(); // Sadece room bilgilerini yenile
     } catch (err: unknown) {
-      const apiError = err as ApiErrorResponse;
+      const apiError = err as ErrorResponse;
       console.error("Error creating room:", err);
-      setError(apiError.response?.data?.message || "Oda oluşturulurken bir hata oluştu");
+      setError(apiError.message || "Oda oluşturulurken bir hata oluştu");
     } finally {
       setIsCreatingRoom(false);
     }

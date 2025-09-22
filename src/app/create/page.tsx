@@ -9,7 +9,7 @@ import { DebateCategory } from "@/types/debate";
 import { validateTitle, validateTopic } from "@/lib/validation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useToast } from "@/components/ui/Toast";
-import type { ApiErrorResponse, ValidationError } from "@/types/api";
+import type { ErrorResponse, ValidationError } from "@/types/api";
 
 const categoryOptions = [
   { value: DebateCategory.POLITICS, label: "Politika" },
@@ -106,16 +106,24 @@ export default function CreateDebatePage() {
 
       router.push(`/debate/${createdDebate.data.id}`);
     } catch (error: unknown) {
-      const apiError = error as ApiErrorResponse;
-      
-      if (apiError.response?.data?.errors) {
-        const serverErrors: { [key: string]: string } = {};
-        apiError.response.data.errors.forEach((err: ValidationError) => {
-          serverErrors[err.field] = err.message;
-        });
-        setErrors(serverErrors);
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: ErrorResponse } };
+        const apiError = axiosError.response?.data;
+        
+        if (apiError?.message) {
+          addToast(apiError.message, "error");
+          setErrors({
+            general: apiError.message
+          });
+        } else {
+          addToast("Münazara oluşturulurken bir hata oluştu", "error");
+          setErrors({
+            general: "Münazara oluşturulurken bir hata oluştu"
+          });
+        }
       } else {
-        const errorMessage = apiError.response?.data?.message || "Münazara oluşturulurken bir hata oluştu";
+        // Handle other types of errors
+        const errorMessage = "Münazara oluşturulurken bir hata oluştu";
         addToast(errorMessage, "error");
         setErrors({
           general: errorMessage
