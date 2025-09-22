@@ -33,8 +33,6 @@ export async function getDebateRooms(debateId: string): Promise<DebateRoomsRespo
   try {
     const response = await apiClient.get<DebateRoomsApiResponse>(`/debateRooms/debate/${debateId}`);
     
-    // Extract rooms from the new API response format
-    // The new format has rooms directly in response.data.data (not response.data.data.data)
     const rooms = response.data.data || [];
     const transformedRooms = rooms.map((room: DebateRoomSummary) => computeRoomProperties(room));
 
@@ -51,7 +49,6 @@ export async function getDebateRooms(debateId: string): Promise<DebateRoomsRespo
 export async function createDebateRoom(debateId: string): Promise<DebateRoomSummary> {
   try {
     const response = await apiClient.post(`/debateRooms/create`, { debateId });
-    // Extract data from the new API response format
     return response.data.data || response.data;
   } catch (error) {
     console.error('Error creating debate room:', error);
