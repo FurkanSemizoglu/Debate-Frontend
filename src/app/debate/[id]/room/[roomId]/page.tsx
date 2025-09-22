@@ -98,7 +98,6 @@ export default function DebateRoom() {
     try {
       setIsLoading(true);
       const roomData = await getIndividualDebateRoom(roomId);
-      console.log("Fetched room data:", roomData);
       setDebateRoom(roomData);
       
     } catch (err: unknown) {
@@ -165,10 +164,8 @@ export default function DebateRoom() {
     try {
       setIsStarting(true);
       
-      // Başlatma API'si çağır
       await startDebateRoom(roomId);
       
-      // Refresh room data
       const updatedRoom = await getIndividualDebateRoom(roomId);
       setDebateRoom(updatedRoom);
       
@@ -194,7 +191,6 @@ export default function DebateRoom() {
     }
   };
 
-  // Helper function to get status color
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
@@ -448,7 +444,6 @@ export default function DebateRoom() {
 
         {/* Main Content */}
         {isRoomFinished(debateRoom.room.status) ? (
-          /* Finished Room - Show only participants */
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -539,19 +534,16 @@ export default function DebateRoom() {
             </div>
           </div>
         ) : debateRoom.room.status === 'ACTIVE' || debateRoom.room.status === 'LIVE' ? (
-          /* Canlı Münazara Arayüzü */
           <VoiceChatInterface
             roomId={roomId as string}
             proposers={proposers}
             opponents={opponents}
             currentUser={user}
             onRoomClosed={() => {
-              // Oda kapatıldığında sayfayı yenile
               fetchDebateRoom();
             }}
           />
         ) : (
-          /* Normal Oda Arayüzü */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Panel - Participants */}
           <div className="lg:col-span-2 space-y-6">

@@ -1,4 +1,4 @@
-// Münazara için konuşmacı bileşeni
+// Debate speaker component
 "use client";
 
 import { motion } from "framer-motion";
@@ -24,7 +24,6 @@ export default function DebateSpeaker({
   audioLevel = 0,
   isMuted = false
 }: SpeakerProps) {
-  // Taraf renklerini belirleme
   const sideColors = {
     affirmative: {
       light: "bg-blue-100",

@@ -5,7 +5,6 @@ export interface ValidationError {
   message: string;
 }
 
-// New backend error format
 export interface BackendErrorResponse {
   statusCode: number;
   timestamp: string;
@@ -16,7 +15,6 @@ export interface BackendErrorResponse {
   errors?: ValidationError[]; // For validation errors
 }
 
-// Axios error wrapper for the new format
 export interface ApiErrorResponse {
   response?: {
     status: number;
@@ -25,7 +23,6 @@ export interface ApiErrorResponse {
   message?: string;
 }
 
-// Legacy interface (keeping for backward compatibility)
 export interface LegacyApiErrorResponse {
   response?: {
     data?: {
@@ -36,7 +33,6 @@ export interface LegacyApiErrorResponse {
   message?: string;
 }
 
-// New standardized API response format
 export interface StandardApiResponse<T = unknown> {
   success: boolean;
   statusCode: number;
@@ -47,7 +43,6 @@ export interface StandardApiResponse<T = unknown> {
   message: string;
 }
 
-// Legacy API response format (keeping for backward compatibility)
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;

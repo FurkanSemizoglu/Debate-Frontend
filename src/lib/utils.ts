@@ -1,4 +1,3 @@
-// src/lib/utils.ts
 import { VALIDATION } from "./constants";
 import type { ApiErrorResponse } from "@/types/api";
 
@@ -11,12 +10,10 @@ export function formatError(error: unknown): string {
   if (error && typeof error === "object") {
     const apiError = error as ApiErrorResponse;
     
-    // New backend error format
     if (apiError.response?.data?.message) {
       return apiError.response.data.message;
     }
     
-    // Fallback to generic message property
     const genericError = error as { message?: string };
     if (genericError.message) {
       return genericError.message;

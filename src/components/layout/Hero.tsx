@@ -1,4 +1,4 @@
-// Hero bileşeni ana sayfada kullanılacak
+// Hero component for main page
 "use client";
 
 import { motion } from 'framer-motion';

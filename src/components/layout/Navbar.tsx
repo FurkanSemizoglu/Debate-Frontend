@@ -15,7 +15,6 @@ export default function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  // Get full name (handle both name and surname if available)
   const getFullName = () => {
     if (!user) return '';
     return user.surname ? `${user.name} ${user.surname}` : user.name;
@@ -29,7 +28,6 @@ export default function Navbar() {
     return user.name.charAt(0).toUpperCase();
   };
 
-  // Check if the current path is active
   const isActivePath = (path: string) => {
     if (path === '/') {
       return pathname === '/';
@@ -37,7 +35,6 @@ export default function Navbar() {
     return pathname.startsWith(path);
   };
 
-  // Close user menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -45,11 +42,6 @@ export default function Navbar() {
       }
     }
 
-    console.log("User menu ref:", userMenuRef.current);
-    console.log("Is user menu open:", isUserMenuOpen);
-    console.log("Is user authenticated:", isAuthenticated);
-    console.log("User data:", user);
-    console.log("logout " , logout);
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);

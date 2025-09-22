@@ -22,7 +22,6 @@ export default function Home() {
   useEffect(() => {
 
     fetchDebates();
-    console.log("API URL on client:", process.env.NEXT_PUBLIC_API_URL);
   }, []);
 
 
@@ -66,7 +65,6 @@ export default function Home() {
     setSelectedCategory(category);
   };
 
-  // Sayfanın içeriği için animasyon varyantları
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

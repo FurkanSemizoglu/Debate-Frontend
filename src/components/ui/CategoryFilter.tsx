@@ -1,4 +1,4 @@
-// Kategori filtreleme bileşeni
+// Category filter component
 "use client";
 
 import { motion } from 'framer-motion';

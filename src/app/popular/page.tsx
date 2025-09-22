@@ -6,10 +6,8 @@ import DebateCard from "@/components/debate/DebateCard";
 import { getAllDebates, transformDebateForDisplay } from "@/services/debate";
 import type { DebateDisplayData } from "@/types/debate";
 
-// Zaman aralığı filtresi için tip tanımı
 type TimeFilter = "day" | "week" | "month" | "year" | "all";
 
-// Günlük trendler için haber/bilgi kartları
 const trendingTopics = [
   {
     id: 1,
@@ -37,18 +35,20 @@ export default function Popular() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch popular debates from API
   useEffect(() => {
-    const fetchPopularDebates = async () => {
+    fetchPopularDebates();
+  }, [timeFilter]);
+
+
+      const fetchPopularDebates = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await getAllDebates({ limit: 20 }); // Get debates and filter popular ones
+        const response = await getAllDebates({ limit: 20 });
         const transformedDebates = response.data.map(transformDebateForDisplay);
-        // Filter for popular debates (those with high participation)
         const popularDebates = transformedDebates
-          .filter(debate => debate.participantCount > 10) // Simple popularity threshold
-          .sort((a, b) => b.participantCount - a.participantCount); // Sort by participation
+          .filter(debate => debate.participantCount > 10)
+          .sort((a, b) => b.participantCount - a.participantCount);
         setFilteredDebates(popularDebates);
       } catch (err) {
         console.error('Error fetching popular debates:', err);
@@ -57,11 +57,7 @@ export default function Popular() {
         setIsLoading(false);
       }
     };
-
-    fetchPopularDebates();
-  }, [timeFilter]); // Re-fetch when time filter changes
-
-  // Animasyon varyantları
+  
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

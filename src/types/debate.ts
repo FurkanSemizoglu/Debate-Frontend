@@ -109,7 +109,6 @@ export interface DebateRoomData {
   };
 }
 
-// Interface for transformed debate display data
 export interface DebateDisplayData {
   id: string;
   title: string;
@@ -124,7 +123,6 @@ export interface DebateDisplayData {
   category?: DebateCategory;
 }
 
-// Interface for voice chat participants
 export interface VoiceChatParticipant {
   id: string;
   user: User;
@@ -134,7 +132,6 @@ export interface VoiceChatParticipant {
   joinedAt: string;
 }
 
-// Interface for voice chat props
 export interface VoiceChatProps {
   proposers: VoiceChatParticipant[];
   opponents: VoiceChatParticipant[];

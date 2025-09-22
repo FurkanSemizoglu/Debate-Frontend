@@ -7,14 +7,12 @@ import DebateCard from "@/components/debate/DebateCard";
 import { getAllDebates, transformDebateForDisplay, DebateCategory } from "@/services/debate";
 import type {  DebateDisplayData } from "@/types/debate";
 
-// Filtreleme seçenekleri için arayüz
 interface FilterOption {
   id: string;
   label: string;
   value?: DebateCategory | null;
 }
 
-// Kategori seçenekleri
 const categoryOptions: FilterOption[] = [
   { id: "all", label: "Tümü", value: null },
   { id: "technology", label: "Teknoloji", value: DebateCategory.TECHNOLOGY },
@@ -26,7 +24,6 @@ const categoryOptions: FilterOption[] = [
   { id: "sports", label: "Spor", value: DebateCategory.SPORTS },
 ];
 
-// Sıralama seçenekleri
 const sortOptions: FilterOption[] = [
   { id: "latest", label: "En Yeni" },
   { id: "popular", label: "En Popüler" },
@@ -83,7 +80,6 @@ export default function Explore() {
   const filterTopics = (category: string, sort: string, search: string = "") => {
     let filtered = [...debates];
     
-    // Arama filtresi (isme göre)
     if (search.trim() !== "") {
       filtered = filtered.filter(debate => 
         debate.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -91,7 +87,6 @@ export default function Explore() {
       );
     }
     
-    // Kategori filtresi
     if (category !== "all") {
       const selectedCategoryOption = categoryOptions.find(opt => opt.id === category);
       if (selectedCategoryOption && selectedCategoryOption.value) {
@@ -99,7 +94,6 @@ export default function Explore() {
       }
     }
     
-    // Sıralama
     switch (sort) {
       case "latest":
         filtered.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
@@ -124,7 +118,6 @@ export default function Explore() {
     }
   }, [debates, selectedCategory, selectedSort, searchTerm]);
 
-  // Sayfa animasyonları
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

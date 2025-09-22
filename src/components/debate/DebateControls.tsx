@@ -1,4 +1,4 @@
-// Münazara ses kontrol ve tartışma akışı bileşeni
+// Debate voice control and discussion flow component
 "use client";
 
 import { motion } from "framer-motion";
@@ -26,14 +26,12 @@ export default function DebateControls({
   onRequestToSpeak,
   onToggleRecording
 }: DebateControlsProps) {
-  // Kalan süreyi formatla
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
-  // Devam eden animasyon için pulse efekti
   const pulseVariants = {
     pulse: {
       scale: [1, 1.05, 1],

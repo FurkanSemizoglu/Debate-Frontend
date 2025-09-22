@@ -1,4 +1,4 @@
-// Canlı münazara için sesli sohbet arayüzü
+// Live debate voice chat interface
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -38,7 +38,6 @@ export default function VoiceChatInterface({
   const [isMuted, setIsMuted] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
-  // Timer için effect
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeElapsed(prev => prev + 1);
@@ -47,7 +46,6 @@ export default function VoiceChatInterface({
     return () => clearInterval(timer);
   }, []);
 
-  // Konuşmacıları hazırla
   useEffect(() => {
     const allSpeakers: Speaker[] = [
       ...proposers.map(p => ({
@@ -70,14 +68,12 @@ export default function VoiceChatInterface({
     setSpeakers(allSpeakers);
   }, [proposers, opponents]);
 
-  // Zaman formatlama
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Konuşmacı değiştirme
   const handleSpeakerToggle = (speakerId: string) => {
     setSpeakers(prev => prev.map(speaker => ({
       ...speaker,
@@ -88,17 +84,14 @@ export default function VoiceChatInterface({
     setCurrentSpeaker(speaker || null);
   };
 
-  // Mikrofon kapatma/açma
   const handleMuteToggle = () => {
     setIsMuted(!isMuted);
   };
 
-  // Kayıt başlatma/durdurma
   const handleRecordToggle = () => {
     setIsRecording(!isRecording);
   };
 
-  // Odayı kapatma
   const handleCloseRoom = async () => {
     try {
       setIsClosing(true);

@@ -1,4 +1,4 @@
-// Arama bileşeni
+// Search component
 "use client";
 
 import { useState } from 'react';
@@ -15,7 +15,6 @@ export default function SearchBar({ onSearch, placeholder = "Bir münazara konus
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    // Anında filtreleme için onSearch'ü çağır
     if (onSearch) {
       onSearch(value);
     }

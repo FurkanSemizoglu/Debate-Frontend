@@ -49,8 +49,6 @@ export default function DebatePage() {
 
   const mainDebate = debate;
 
-  console.log("Debate Data:", debateData);
-
   useEffect(() => {
     fetchDebateData();
   }, [debateId]);
@@ -65,7 +63,6 @@ export default function DebatePage() {
     try {
       setIsLoading(true);
       
-      // Debate bilgilerini ve room bilgilerini paralel olarak al
       const [debateResponse, roomsResponse] = await Promise.all([
         getDebateById(debateId),
         getDebateRooms(debateId)
@@ -121,7 +118,6 @@ export default function DebatePage() {
     }
   };
 
-  // Helper function to get status label
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'ACTIVE': 
@@ -134,7 +130,6 @@ export default function DebatePage() {
     }
   };
 
-  // Helper function to get status color
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':

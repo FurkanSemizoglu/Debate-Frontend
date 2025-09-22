@@ -31,7 +31,6 @@ export default function CreateDebatePage() {
   const { addToast } = useToast();
   const router = useRouter();
 
-  // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
@@ -109,7 +108,6 @@ export default function CreateDebatePage() {
     } catch (error: unknown) {
       const apiError = error as ApiErrorResponse;
       
-      // Handle server validation errors (if backend sends them)
       if (apiError.response?.data?.errors) {
         const serverErrors: { [key: string]: string } = {};
         apiError.response.data.errors.forEach((err: ValidationError) => {
@@ -117,7 +115,6 @@ export default function CreateDebatePage() {
         });
         setErrors(serverErrors);
       } else {
-        // Use the new backend error format
         const errorMessage = apiError.response?.data?.message || "Münazara oluşturulurken bir hata oluştu";
         addToast(errorMessage, "error");
         setErrors({
